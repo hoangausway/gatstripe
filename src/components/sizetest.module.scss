@@ -1,0 +1,119 @@
+@import "../styles/theme-dark.scss";
+
+.section-test {
+  overflow: hidden;
+  width: 100%;
+  background-color: #000;
+}
+
+// 
+.defaultLessThan376 {
+  color: #e6e7e8;
+}
+.iphone376 {
+  color: darkgray;
+}
+
+.iphonePlusP414 {
+  color: pink;
+}
+
+.iphoneL667 { // weird resolution 568px; 
+  color: orange;
+}
+
+.iphonePlusL736 {
+  color: orangered;
+}
+
+.ipadP768 {
+  color: yellow;
+}
+
+.ipadP834 {
+  color: greenyellow;
+}
+
+.ipadP1024 {
+  color: green;
+}
+
+.ipadL1112 {
+  color: blue;
+}
+
+.ipadL1366 {
+  color: blueviolet;
+}
+
+.desktopL1680 {
+  color: cyan;
+}
+
+.test-msg{
+  font-size: 5vw;
+  font-weight: bold;
+  color: #e6e7e8;
+  margin: 2rem;
+}
+
+@media (min-width: $iphoneP375) {
+  .test-msg {
+    color: pink;
+  }
+}
+
+@media (min-width: $iphonePlusP414) {
+  .test-msg {
+    color: orange;
+  }
+}
+
+@media (min-width: $iphoneL667) {
+  .test-msg {
+    color: orangered;
+  }
+}
+
+@media (min-width: $iphonePlusL736) {
+  .test-msg {
+    color: red;
+  }
+}
+
+@media (min-width: $ipadP768) {
+  .test-msg {
+    color: yellow;
+  }
+}
+
+@media (min-width: $ipadProP834) {
+  .test-msg {
+    color: green;
+  }
+}
+
+@media (min-width: $ipadL1024) {
+  .test-msg {
+    color: greenyellow;
+  }
+}
+
+@media (min-width: $ipadProL1112) {
+  .test-msg {
+    color: blue;
+  }
+}
+
+@media (min-width: $ipadProL1366) {
+  .test-msg {
+    color: blueviolet;
+  }
+}
+
+@media (min-width: $desktopL1680) {
+  .test-msg {
+    color: cyan;
+  }
+}
+

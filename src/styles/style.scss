@@ -1,0 +1,54 @@
+@import "svg";
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+$fontgillsans: "Gill Sans", sans-serif; // baseline ratio: 0.161
+$fontgillsansbaseline: 0.161;
+
+$fontimpact: Impact, Charcoal, sans-serif; // baseline ratio: 0.101074
+$fontimpactbaseline: 0.101074;
+
+body {
+  font-family: $fontgillsans;
+  font-size: 16px;
+  font-weight: lighter;
+  overflow-x: hidden;
+  color: black;
+}
+
+a,
+a:hover,
+a:visited,
+a:link,
+a:active {
+  text-decoration: none;
+}
+
+$iphoneP375: 374px;
+$iphoneL667: 568px; // weird resolution
+$iphonePlusP414: 413px;
+$iphonePlusL736: 735px;
+$ipadP768: 767px;
+$ipadProP834: 833px;
+$ipadL1024: 1023px;
+$ipadProL1112: 1111px;
+$ipadProL1366: 1365px;
+$desktopL1680: 1679px;
+
+// Animation configs. Dependency: animate.css.
+$transitionfadein: opacity 3s ease;
+
+$fadinduration: 3s;
+.animate__animated.animate__fadeIn {
+  --animate-duration: $fadinduration;
+}
+
+@mixin position-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

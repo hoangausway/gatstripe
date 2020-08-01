@@ -1,0 +1,12 @@
+@import 'svg-lr-circle-right-bottom.scss' ;
+
+// mix in an background image with svg code
+@mixin bg-svg($svgcode) {
+  background-image: url($svgcode);
+}
+
+@function svg-lr-circle-right-bottom($color: $svg-lr-circle-right-bottom-color) {
+  $svg-lr-circle-right-bottom-color: $color;
+  @return $svg-lr-circle-right-bottom-part1 + $svg-lr-circle-right-bottom-color +
+    $svg-lr-circle-right-bottom-part3;
+}

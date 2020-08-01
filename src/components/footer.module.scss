@@ -1,0 +1,71 @@
+@import "../styles/theme-dark.scss";
+
+.footer {
+  overflow: hidden;
+  height: auto;
+  color: $footer-color-fg-dark;
+  background-color: $footer-color-bg;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  grid-gap: 0;
+  font-size: 1rem;
+  padding-bottom: 2rem;
+  div {
+    width: 100%;
+    padding-top: 2rem;
+    padding-left: 2rem;
+  }
+}
+
+.logo {
+  img {
+    width: 90%;
+  }
+}
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  p {
+    padding-bottom: 0.5rem;
+  }
+  a:hover,
+  a:visited,
+  a:link,
+  a:active {
+    text-decoration: none;
+    color: $footer-color-link;
+    padding-bottom: 0.5rem;
+  }
+  a.beboss {
+    color: $footer-color-link-beboss;
+  }
+}
+
+.contact {
+  p {
+    padding-bottom: 0.5rem;
+  }
+  a:hover,
+  a:visited,
+  a:link,
+  a:active {
+    text-decoration: none;
+    color: $footer-color-link;
+    padding: 0.2rem;
+  }
+}
+
+.social {
+  p {
+    padding-bottom: 1rem;
+  }
+  a {
+    padding-right: 2rem;
+    img {
+      width: 2rem;
+      height: auto;
+    }
+  }
+}

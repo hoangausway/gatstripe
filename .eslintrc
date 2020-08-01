@@ -1,0 +1,7 @@
+{
+  "parser": "babel-eslint",
+  "rules": {
+   // These rules represent best practices that we're not adhering to, and should be enabled
+    "jsx-a11y/click-events-have-key-events": 0
+  }
+}

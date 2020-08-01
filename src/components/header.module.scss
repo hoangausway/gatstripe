@@ -1,0 +1,140 @@
+@import "../styles/theme-dark.scss";
+
+.header {
+  z-index: 1000;
+  overflow: hidden;
+  width: 100%;
+  transition: height 1s linear;
+}
+
+$toggle_height: 100vh;
+
+.navList {
+  opacity: 0.99;
+  overflow: hidden;
+  
+  background-color: $color-primary-dark;
+  
+  background-image: url("../img/wordcloud.svg");
+  background-position: right 1rem bottom 6rem;
+  background-repeat: no-repeat;
+  background-size: 60vh auto;
+  background-attachment: scroll;
+
+  width: 100%;
+  height: $toggle_height;
+  padding: 0.5rem 1rem;
+  a {
+    display: block;
+    text-align: left;
+    height: 2rem;
+    margin: 0.4rem;
+    color: $color-fg;
+    font-size: 1.2rem;
+  }
+}
+
+.nav {
+  width: 100%;
+  height: 3rem;
+  background-color: $color-nav-bg;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.2rem;
+  .nav-left {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+
+    .switcher {
+      padding-left: 3rem;
+      position: relative;
+      &:before {
+        content: "\2261";
+        font-size: 4rem;
+        color: $color-nav-switcher;
+        @include position-center;
+        padding-left: 1rem;
+        padding-bottom: 0.2rem;
+      }
+    }
+    a {
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-image: url("../img/lr-icon.svg");
+      width: 6rem;
+      height: 100%;
+      margin-left: 0.7rem;
+    }
+  }
+
+  .nav-right {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    height: 100%;
+    a {
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-image: url("../img/menu-download.svg");
+      width: 5rem;
+      height: 100%;
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+@media (min-width: $iphoneP375) {
+  // 376
+  .navList a {
+    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+  }
+}
+
+@media (min-width: $iphonePlusL736) {
+  // 735
+  .navList a {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+  }
+}
+
+@media (min-width: 800px) {
+  // 800
+  .navList a {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  // 1100
+  .navList a {
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  // 1600
+  .navList a {
+    font-size: 2.5rem;
+    margin-bottom: 1.2rem;
+  }
+}
+
+@media (min-width: $desktopL1680) {
+  // 1919px
+  .navList a {
+    font-size: 2.8rem;
+    margin-bottom: 2rem;
+  }
+}

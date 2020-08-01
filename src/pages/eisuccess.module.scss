@@ -1,0 +1,123 @@
+@import "../styles/theme-dark.scss";
+
+.success {
+  padding: 1rem;
+  position: relative;
+
+  .thanks {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.1rem;
+    color: $color-fg;
+    background-color: $color-accent-light;
+
+    position: absolute;
+    top: 4rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .willcontact {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.1rem;
+    color: $color-fg;
+    background-color: $color-fresh-dark;
+
+    position: absolute;
+    top: 5rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (min-width: $iphoneP375) {
+  .success {
+    .thanks {
+      top: 8rem;
+    }
+    .willcontact {
+      top: 9rem;
+    }
+  }
+}
+
+@media (min-width: $iphoneL667) {
+  .success {
+    .thanks {
+      font-size: 1rem;
+      top: 8rem;
+    }
+    .willcontact {
+      font-size: 0.8rem;
+      top: 9.5rem;
+    }
+  }
+}
+
+@media (min-width: $iphonePlusL736) {
+  .success {
+    .thanks {
+      font-size: 1.2rem;
+      top: 8rem;
+    }
+    .willcontact {
+      font-size: 1rem;
+      top: 10rem;
+    }
+  }
+}
+
+@media (min-width: $ipadP768) {
+  .success {
+    .thanks {
+      font-size: 1.6rem;
+      top: 10rem;
+    }
+    .willcontact {
+      font-size: 1.4rem;
+      top: 12rem;
+    }
+  }
+}
+
+@media (min-width: $ipadProP834) {
+  .success {
+    .thanks {
+      font-size: 1.8rem;
+      top: 12rem;
+    }
+    .willcontact {
+      font-size: 1.6rem;
+      top: 14.5rem;
+    }
+  }
+}
+
+@media (min-width: $ipadProL1112) {
+  .success {
+    .thanks {
+      font-size: 2rem;
+      top: 14rem;
+    }
+    .willcontact {
+      font-size: 1.8rem;
+      top: 16.5rem;
+    }
+  }
+}
+
+@media (min-width: $ipadProL1366) {
+  .success {
+    .thanks {
+      font-size: 2.2rem;
+      top: 14rem;
+    }
+    .willcontact {
+      font-size: 2rem;
+      top: 17rem;
+    }
+  }
+}
