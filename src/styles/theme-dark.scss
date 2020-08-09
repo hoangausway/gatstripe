@@ -11,7 +11,7 @@ $scotch-colors: (
     "dark": #2d2d2d,
   ),
   "secondary": (
-    "base": #e6e7e8,
+    "base": #f8f9fa,
     "light": #ffffff,
     "dark": #b4b5b6,
   ),
@@ -64,11 +64,15 @@ $scotch-opacity: (
 }
 
 /* Theme colors */
+$color-accent: scotch-color("accent");
 $color-accent-light: scotch-color("accent", "light");
 $color-accent-dark: scotch-color("accent", "dark");
 $color-bg: scotch-color("primary");
 $color-primary-dark: scotch-color("primary", "dark");
 $color-fg: scotch-color("secondary");
+$color-secondary-dark: scotch-color("secondary", "dark");
+$color-secondary-light: scotch-color("secondary", "light");
+$color-fresh: scotch-color("fresh");
 $color-fresh-light: scotch-color("fresh", "light");
 $color-fresh-dark: scotch-color("fresh", "dark");
 $color-text-bg: scotch-color("primary", $opacity: "mid");
@@ -78,35 +82,16 @@ body {
   background-color: scotch-color("secondary");
 }
 
+// categories
+$bg: $color-fg; //scotch-color("secondary", "light");
+$products-bg: $color-secondary-light;
+$cat-title-text: $color-fresh-light; //$color-primary-dark;
+$product-name: $color-primary-dark;
+$product-bg: $color-fg;
+
 // nav
 $color-nav-bg: $color-primary-dark;
 $color-nav-switcher: $color-fg;
-
-// intro
-$intro-color-bg: $color-bg;
-$intro-msg-color: $color-fg;
-
-// foods
-$foods-msg-color: $color-fg;
-$foods-more-bg: $color-text-bg;
-$foods-more-color: scotch-color("accent", "light");
-
-// food
-$food-color-bg: $color-bg;
-$food-cat-color: $color-accent-dark;
-$food-desc-color: $color-fg;
-$food-flavours-color: $color-fresh-light;
-$food-flavours-contents-bg: $color-text-bg;
-
-// sayso
-$sayso-color-bg: $color-primary-dark;
-$sayso-color-fg: $color-fg;
-$sayso-color-title: $color-fg;
-$sayso-color-say: $color-fresh-light;
-$sayso-color-who: scotch-color("fresh", "dark");
-
-// locations
-$locations-color-bg: scotch-color("secondary", "light");
 
 // footer
 $footer-color-fg: $color-fg;
@@ -115,32 +100,12 @@ $footer-color-fg-dark: scotch-color("secondary", "dark");
 $footer-color-link: $color-fresh-dark;
 $footer-color-link-beboss: $color-fresh-light;
 
-// avout - gallery
-$about-gallery-bg: $color-primary-dark;
-
-// epression of interest form
-$eiform-legend: scotch-color("accent");
-$eiform-bg: "none";
-$eiform-label-color: scotch-color("fresh", "dark");
-$eiform-input-text: scotch-color("primary", "light");
-$eiform-button-color: scotch-color("secondary", "light");
-$eiform-clear-button-bg: scotch-color("secondary", "dark");
-$eiform-send-button-bg: scotch-color("accent");
-
-/* SVG codes - NOT IN USED */
-$intro-right-bottom-svgcode: svg-lr-circle-right-bottom($color-fg);
-$foods-right-bottom-svgcode: svg-lr-circle-right-bottom($color-accent-dark);
-
-/* images */
-$lr-logo-lights: "lr-logo-lights.svg";
-$intro-right-bottom-img: "lr-circle-right-bottom.svg";
-$foods-right-bottom-img: "lr-circle-right-bottom-dark.svg";
-$sayso-facebook-img: "facebook.svg";
-$sayso-google-img: "google.svg";
-
 /* Dimensions */
 $top-left-align: 7vw;
 $top-intro-align: 2rem;
 $left-intro-align: 2rem;
 $bodypadding: 10vw;
 $bodyinside: 80vw;
+
+// images
+$foods-right-bottom-img: "lr-circle-right-bottom.svg";

@@ -3,16 +3,19 @@ import Layout from '../components/layout'
 
 import Metadata from '../components/metadata'
 import { graphql } from 'gatsby'
-import { from } from 'rxjs'
+import { from, of, zip } from 'rxjs'
+import { groupBy, mergeMap, toArray, map, reduce } from 'rxjs/operators'
 import { appContext } from '../../context-provider'
 
 import Listing from '../components/listing'
 
 const Index = ({ data }) => {
-  const { setApp$ } = React.useContext(appContext)
+  const { setCategories } = React.useContext(appContext)
+  const categories$ = dataToListing(data.prices.edges)
 
   React.useLayoutEffect(() => {
-    setApp$(from(data.prices.edges))
+    const sub = categories$.subscribe(setCategories)
+    return () => sub.unsubscribe()
   }, [])
 
   return (
@@ -161,3 +164,29 @@ export const query = graphql`
     }
   }
 `
+
+export const sortProductName = (a, b) =>
+  a.product.name.toLowerCase() < b.product.name.toLowerCase() ? -1 : 1
+
+export const dataToListing = prices => {
+  return (
+    // query data
+    from(prices).pipe(
+      // group by CATEGORY as key, transform to array of objects {priceId, product}
+      groupBy(
+        val => val.node.product.metadata.CATEGORY,
+        v => ({
+          priceId: v.node.id,
+          unitAmt: (v.node.unit_amount / 100).toFixed(2),
+          product: v.node.product
+        })
+      ),
+      // merge each group to array of CATEGORY name and array of products
+      mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
+      // sort array of products in each CATEGORY
+      map(arr => [arr[0], arr[1].sort(sortProductName)]),
+      // reduce to overall array
+      reduce((acc, val) => [...acc, val], [])
+    )
+  )
+}
