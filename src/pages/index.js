@@ -17,7 +17,7 @@ const Index = ({ data }) => {
 
   return (
     <Layout>
-      <Metadata title='Home' description='This is my home page' />
+      <Metadata title='Click & Collect' description='This is my home page' />
       <Listing needle='' />
     </Layout>
   )
