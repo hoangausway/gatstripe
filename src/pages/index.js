@@ -1,22 +1,21 @@
 import React from 'react'
-import Layout from '../components/layout'
+import { graphql } from 'gatsby'
+
+import { useDispatch } from 'react-redux'
+import ActionTypes from '../state/action-types'
 
 import Metadata from '../components/metadata'
-import { graphql } from 'gatsby'
-import { from } from 'rxjs'
-import { appContext } from '../../context-provider'
-
+import Layout from '../components/layout'
 import Listing from '../components/listing'
 
 const Index = ({ data }) => {
-  const { setApp$ } = React.useContext(appContext)
-
-  React.useLayoutEffect(() => {
-    setApp$(from(data.prices.edges))
+  const dispatch = useDispatch()
+  React.useEffect(() => {
+    dispatch({ type: ActionTypes.DATA_FEED, payload: data.prices.edges })
   }, [])
 
   return (
-    <Layout>
+    <Layout data={data}>
       <Metadata title='Click & Collect' description='This is my home page' />
       <Listing needle='' />
     </Layout>

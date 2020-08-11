@@ -1,6 +1,8 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import { of, zip } from 'rxjs'
+import { useSelector } from 'react-redux'
+
+import { of, zip, from } from 'rxjs'
 import {
   tap,
   filter,
@@ -11,35 +13,20 @@ import {
   reduce
 } from 'rxjs/operators'
 
-import { appContext } from '../../context-provider'
 import styles from './listing.module.scss'
 import Img from 'gatsby-image'
 
-const Listing = ({ needle }) => {
+const Listing = () => {
   const data = useStaticQuery(query)
-  const { app$ } = React.useContext(appContext)
+
+  const { prices, needle } = useSelector(state => state)
+
   const [categories, setCategories] = React.useState([])
 
   React.useEffect(() => {
-    const cat$ = app$.pipe(
-      filter(price => price && includesNeedle(price, needle)),
-      groupBy(
-        val => val.node.product.metadata.CATEGORY,
-        v => ({
-          priceId: v.node.id,
-          unitAmt: (v.node.unit_amount / 100).toFixed(2),
-          product: v.node.product
-        })
-      ),
-      // merge each group to array of CATEGORY name and array of products
-      mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
-      // sort array of products in each CATEGORY
-      map(arr => [arr[0], arr[1].sort(sortProductName)]),
-      reduce((acc, val) => [...acc, val], [])
-    )
-    const sub = cat$.subscribe(setCategories)
+    const sub = toCategories$(prices, needle).subscribe(setCategories)
     return () => sub.unsubscribe()
-  }, [app$])
+  }, [prices, needle])
 
   return (
     <div className={styles.categories}>
@@ -238,5 +225,24 @@ export const includesNeedle = (price, needle) => {
     price.node.product &&
     (price.node.product.name.toLowerCase().includes(needle) ||
       price.node.product.metadata.TAGS.toLowerCase().includes(needle))
+  )
+}
+
+export const toCategories$ = (prices, needle) => {
+  return from(prices).pipe(
+    filter(price => price && includesNeedle(price, needle)),
+    groupBy(
+      val => val.node.product.metadata.CATEGORY,
+      v => ({
+        priceId: v.node.id,
+        unitAmt: (v.node.unit_amount / 100).toFixed(2),
+        product: v.node.product
+      })
+    ),
+    // merge each group to array of CATEGORY name and array of products
+    mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
+    // sort array of products in each CATEGORY
+    map(arr => [arr[0], arr[1].sort(sortProductName)]),
+    reduce((acc, val) => [...acc, val], [])
   )
 }

@@ -1,3 +1,2 @@
-import RootWrapper from './context-provider'
-
-export const wrapRootElement = RootWrapper
+import wrapWithProvider from './wrap-with-provider'
+export const wrapRootElement = wrapWithProvider
