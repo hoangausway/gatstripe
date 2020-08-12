@@ -1,11 +1,13 @@
 import React from 'react'
 import { Link, useStaticQuery, graphql } from 'gatsby'
 import styles from './header.module.scss'
+import { useDispatchKeyUp } from './utils'
+
+import { actNeedleChange } from '../state/action-types'
 
 const Header = () => {
   // for animation of height change
   const [h, setH] = React.useState('3rem')
-
   const downloadPdf = useStaticQuery(graphql`
     {
       pdf: file(name: { eq: "menu-may2020" }) {
@@ -15,6 +17,8 @@ const Header = () => {
       }
     }
   `)
+
+  const keyupEmit = useDispatchKeyUp(actNeedleChange)
 
   return (
     <header className={styles.header} style={{ height: `${h}` }}>
@@ -27,6 +31,7 @@ const Header = () => {
           <Link to='/' />
         </div>
         <div className={styles.navRight}>
+          <input id='input' placeholder='filter with keywords' onKeyUp={keyupEmit} />
           <a href={downloadPdf.pdf.publicURL} download />
         </div>
       </div>
