@@ -1,6 +1,6 @@
-export const actPricesFeed = prices => ({
-  type: ActionTypes.PRICES_FEED,
-  payload: prices
+export const actProductsFeed = products => ({
+  type: ActionTypes.PRODUCTS_FEED,
+  payload: products
 })
 
 export const actNeedleChange = needle => ({
@@ -9,7 +9,7 @@ export const actNeedleChange = needle => ({
 })
 
 const ActionTypes = {
-  PRICES_FEED: 'prices feed',
+  PRODUCTS_FEED: 'products feed',
   NEEDLE_CHANGE: 'needle change'
 }
 

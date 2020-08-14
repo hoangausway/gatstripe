@@ -1,0 +1,17 @@
+{
+  "name": "laroll-source-stripe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hoang Nguyen",
+  "license": "ISC",
+  "dependencies": {
+    "gatsby-node-helpers": "^0.3.0",
+    "lodash": "^4.17.20",
+    "lunr": "^2.3.8",
+    "stripe": "8.64.0"
+  }
+}

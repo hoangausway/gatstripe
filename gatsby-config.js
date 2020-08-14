@@ -11,18 +11,18 @@ module.exports = {
   siteMetadata: {
     title: 'La Roll - ALWAYS FRESH',
     description: 'Street food, freshly made!',
-    author: 'Ibaslogic'
+    author: 'Hoang Nguyen'
   },
   plugins: [
     'gatsby-plugin-react-helmet',
-    {
-      resolve: `gatsby-source-stripe`,
-      options: {
-        objects: ['Price'],
-        secretKey: process.env.STRIPE_SECRET_KEY,
-        downloadFiles: false
-      }
-    },
+    // {
+    //   resolve: 'gatsby-source-stripe',
+    //   options: {
+    //     objects: ['Price'],
+    //     secretKey: process.env.STRIPE_SECRET_KEY,
+    //     downloadFiles: false
+    //   }
+    // },
     'gatsby-plugin-sass',
     'gatsby-transformer-yaml',
     {
@@ -47,6 +47,13 @@ module.exports = {
             }
           }
         ]
+      }
+    },
+    {
+      resolve: 'gatsby-source-laroll',
+      options: {
+        secretKey: process.env.STRIPE_SECRET_KEY,
+        indexFilePath: 'static/lr-stripe-index.json'
       }
     }
   ]
