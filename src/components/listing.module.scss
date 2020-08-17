@@ -99,23 +99,40 @@ $gap: 1rem;
     align-items: center;
 
     .price {
-      font-size: 1rem;
+      font-size: 0.8rem;
       font-weight: bold;
       color: gray;
       text-align: left;
     }
 
     span span {
-      font-size: 0.7rem;
+      font-size: 0.6rem;
     }
 
     .add {
-      font-size: 1rem;
+      font-size: 0.75rem;
       font-weight: 500;
       color: $color-accent-light;
       text-align: right;
       text-shadow: 1px 1px 2px gray;
       cursor: pointer;
+    }
+  }
+}
+
+.in-cart {
+  background-color: black;
+  .name {
+    color: lightgray;
+    text-shadow: none;
+  }
+
+  .priceandadd {
+    .add {
+      color: lightgray;
+      font-size: 0.55rem;
+      text-shadow: none;
+      cursor: none;
     }
   }
 }

@@ -1,5 +1,7 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
+import _ from 'lodash'
+import lunr from 'lunr'
 import { Subject } from 'rxjs'
 import {
   map,
@@ -7,6 +9,16 @@ import {
   debounceTime,
   distinctUntilChanged
 } from 'rxjs/operators'
+
+export const flattenNodes = nodes => nodes.map(n => n.node)
+
+export const searchQuery = (index, needle) => {
+  if (!index.idx) return []
+  const results = index.idx.search(needle)
+  return results.map(({ ref }) => index.store[ref])
+}
+
+export const loadIndex = idx => lunr.Index.load(idx)
 
 export const useDispatchKeyUp = actionCreate => {
   const dispatch = useDispatch()
@@ -31,3 +43,16 @@ export const useDispatchKeyUp = actionCreate => {
 
   return keyupEmit
 }
+
+export const toCategories = items => {
+  const cs = _.groupBy(items, item => item.category)
+  return Object.keys(cs)
+    .sort()
+    .map(key => {
+      const ps = cs[key].sort(sortProductName)
+      return [key, ps]
+    })
+}
+
+const sortProductName = (a, b) =>
+  a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1

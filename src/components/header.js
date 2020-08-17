@@ -3,7 +3,7 @@ import { Link, useStaticQuery, graphql } from 'gatsby'
 import styles from './header.module.scss'
 import { useDispatchKeyUp } from './utils'
 
-import { actNeedleChange } from '../state/action-types'
+import { aNeedleChange } from '../state/action-types'
 
 const Header = () => {
   // for animation of height change
@@ -18,7 +18,7 @@ const Header = () => {
     }
   `)
 
-  const keyupEmit = useDispatchKeyUp(actNeedleChange)
+  const keyupEmit = useDispatchKeyUp(aNeedleChange)
 
   return (
     <header className={styles.header} style={{ height: `${h}` }}>

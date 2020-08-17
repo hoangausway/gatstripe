@@ -1,8 +1,9 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import { useSelector } from 'react-redux'
-import { useLunr } from 'react-lunr'
-const _ = require('lodash')
+import { useSelector, useDispatch } from 'react-redux'
+import cx from 'classnames'
+
+import { aCartAddItem } from '../state/action-types'
 
 import styles from './listing.module.scss'
 import Img from 'gatsby-image'
@@ -120,29 +121,33 @@ const query = graphql`
 const Listing = () => {
   const data = useStaticQuery(query)
 
-  const { categories, index, store, needle } = useSelector(state => state)
-  const products = useLunr(needle, index, store)
-
+  const cart = useSelector(state => state.cart)
+  const foundCats = useSelector(state => state.foundCats)
   const [cats, setCats] = React.useState([])
 
   React.useEffect(() => {
-    setCats(products.length > 0 ? toCategories(products) : categories)
-  }, [products])
+    const cs = foundCats.map(c => {
+      return [
+        c[0],
+        c[1].map(p => {
+          const foundInCart = cart.find(i => i.productId === p.id)
+          return { ...p, inCart: !!foundInCart }
+        })
+      ]
+    })
+    setCats(cs)
+  }, [foundCats, cart])
 
   return (
     <div className={styles.categories}>
-      {cats.map(([category, products]) => {
-        const imgName = category.toLowerCase().replace(/ /g, '')
-        const img = data.images.edges[0].node.frontmatter[imgName]
-        return (
-          <Category
-            key={category}
-            category={category}
-            products={products}
-            img={img}
-          />
-        )
-      })}
+      {cats.map(([category, products]) => (
+        <Category
+          key={category}
+          category={category}
+          products={products}
+          img={catImage(category, data.images.edges[0].node.frontmatter)}
+        />
+      ))}
     </div>
   )
 }
@@ -154,55 +159,54 @@ const Category = ({ category, products, img }) => {
     <div className={styles.category}>
       <div className={styles.title}>
         <h3>{category}</h3>
-        {img ? (
-          <Img
-            fluid={img.childImageSharp.fluid}
-            alt='image'
-            className={styles.catimage}
-          />
-        ) : (
-          ''
-        )}
+        {catImg(img, styles.catimage)}
       </div>
       <div className={styles.flexCenter}>
-        <div className={styles.products}>
-          {products.map(product => (
-            <Product key={product.id} product={product} />
-          ))}
-        </div>
+        <div className={styles.products}>{productList(products)}</div>
       </div>
     </div>
   )
 }
 
 const Product = ({ priceId, unitAmt, product }) => {
+  const dispatch = useDispatch()
+  const pickHandler = () =>
+    !product.inCart && dispatch(aCartAddItem(product.id))
+
+  const inCart = product.inCart
+
   return (
     <div className={styles.flexCell}>
-      <div className={styles.product}>
+      <div
+        className={inCart ? cx(styles.product, styles.inCart) : styles.product}
+      >
         <p className={styles.name}>{product.name}</p>
-        <div className={styles.bottom}>
-          <div className={styles.priceandadd}>
-            <span className={styles.price}>
-              ${product.price} <span>{product.unit_label}</span>
-            </span>
-            <span className={styles.add}>Pick</span>
-          </div>
-          <p style={{ display: 'none' }}>{JSON.stringify(product.metadata)}</p>
+        <div className={styles.priceandadd}>
+          <span className={styles.price}>
+            ${product.price} <span>{product.unit_label}</span>
+          </span>
+          <span className={styles.add} onClick={pickHandler}>
+            {product.inCart ? 'IN CART' : 'PICK'}
+          </span>
         </div>
       </div>
     </div>
   )
 }
 
-const sortProductName = (a, b) =>
-  a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1
+// Helpers
+const catImg = (img, style) => {
+  return img ? (
+    <Img fluid={img.childImageSharp.fluid} alt='image' className={style} />
+  ) : (
+    ''
+  )
+}
 
-const toCategories = products => {
-  const cs = _.groupBy(products, product => product.metadata.CATEGORY)
-  return Object.keys(cs)
-    .sort()
-    .map(key => {
-      const ps = cs[key].sort(sortProductName)
-      return[key, ps]
-    })
+const productList = products =>
+  products.map(product => <Product key={product.id} product={product} />)
+
+const catImage = (category, frontmatter) => {
+  const imgName = category.toLowerCase().replace(/ /g, '')
+  return frontmatter[imgName]
 }

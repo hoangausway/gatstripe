@@ -15,14 +15,6 @@ module.exports = {
   },
   plugins: [
     'gatsby-plugin-react-helmet',
-    // {
-    //   resolve: 'gatsby-source-stripe',
-    //   options: {
-    //     objects: ['Price'],
-    //     secretKey: process.env.STRIPE_SECRET_KEY,
-    //     downloadFiles: false
-    //   }
-    // },
     'gatsby-plugin-sass',
     'gatsby-transformer-yaml',
     {
@@ -52,8 +44,7 @@ module.exports = {
     {
       resolve: 'gatsby-source-laroll',
       options: {
-        secretKey: process.env.STRIPE_SECRET_KEY,
-        indexFilePath: 'static/lr-stripe-index.json'
+        secretKey: process.env.STRIPE_SECRET_KEY
       }
     }
   ]

@@ -1,16 +1,23 @@
-export const actProductsFeed = products => ({
-  type: ActionTypes.PRODUCTS_FEED,
-  payload: products
+/* Action creators */
+export const aDataFeed = data => ({
+  type: ActionTypes.DATA_FEED,
+  payload: data
 })
 
-export const actNeedleChange = needle => ({
+export const aNeedleChange = needle => ({
   type: ActionTypes.NEEDLE_CHANGE,
   payload: needle
 })
 
+export const aCartAddItem = item => ({
+  type: ActionTypes.CART_ADD_ITEM,
+  payload: item
+})
+
 const ActionTypes = {
-  PRODUCTS_FEED: 'products feed',
-  NEEDLE_CHANGE: 'needle change'
+  DATA_FEED: 'data feed',
+  NEEDLE_CHANGE: 'needle change',
+  CART_ADD_ITEM: 'cart add item'
 }
 
 export default ActionTypes

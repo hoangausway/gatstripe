@@ -1,8 +1,8 @@
+const lunr = require('lunr')
+const _ = require('lodash')
 const createNodeHelpers = require('gatsby-node-helpers').default
 const Stripe = require('stripe')
-const lunr = require('lunr')
-const fs = require('fs')
-const _ = require('lodash')
+const { items } = require('./products')
 
 exports.onPreInit = () => {
   console.log('Testing plugin gatsby-source-laroll...')
@@ -12,64 +12,95 @@ exports.sourceNodes = async (
   { actions },
   { secretKey = '', indexFilePath }
 ) => {
+  // make sure items have uniqe names
+  if (isAnyDupName(items)) {
+    console.log('some name is duplicated')
+    return
+  }
+
   const { createNode } = actions
   const { createNodeFactory } = createNodeHelpers({
     typePrefix: 'LRStripe'
   })
-  const prepareProductsNode = createNodeFactory('Products')
 
   const stripe = new Stripe(secretKey)
-  const priceListObject = await stripe.prices.list({ limit: 100 })
+  const priceListObject = await stripe.prices.list({ limit: 100 }) // limit 100
   const productListObject = await stripe.products.list({ limit: 100 })
 
   const prices = priceListObject.data
   const products = productListObject.data
 
-  const docs = []
-  const store = {}
-
-  products.forEach(product => {
-    const price = prices.find(p => p.product === product.id)
+  const itemsByName = items.reduce(
+    (acc, item) => ({ ...acc, [item.name]: item }),
+    {}
+  )
+  // first round processing
+  products.forEach(p => {
+    const price = prices.find(pce => pce.product === p.id)
     if (price) {
-      // add price fields to product: mutation by intention
-      product.priceId = price.id
-      product.priceCents = price.unit_amount
-      product.price = (price.unit_amount / 100).toFixed(2)
-      product.tags = product.metadata.TAGS
+      // add price related fields
+      p.priceId = price.id
+      p.priceCents = price.unit_amount
+      p.price = (price.unit_amount / 100).toFixed(2)
 
-      // create source node
-      const node = prepareProductsNode(product)
-      createNode({ ...node, id: product.id })
+      if (p.metadata) {
+        p.extras = p.metadata.extras
+      }
 
-      // accumulate products object for using with lunr later on
-      docs.push(product)
+      // temporary set category as 'extra'
+      p.category = 'EXTRA'
+
+      const item = itemsByName[p.name]
+
+      if (item) {
+        // reset category for items which are not extra
+        p.category = item.category
+        p.tags = item.tags
+        p.gst = item.gst
+      }
     }
   })
 
-  // gorup products by category then sort them
-  const cats = _.groupBy(products, product => product.metadata.CATEGORY)
-  for (ps in cats) {
-    cats[ps] = cats[ps].sort(sortProductName)
-  }
-  const categories = Object.keys(cats)
-    .sort()
-    .map(key => [key, cats[key]])
+  const prepareItemsNode = createNodeFactory('Items')
+  const prepareExtrasNode = createNodeFactory('Extras')
+  const prepareIndexNode = createNodeFactory('LunrIndex')
 
+  const [extraProds, prods] = _.partition(products, p => p.category === 'EXTRA')
+
+  extraProds.forEach(p => {
+    const node = prepareExtrasNode(p)
+    createNode({ ...node, id: p.id })
+  })
+
+  prods.forEach(p => {
+    const node = prepareItemsNode(p)
+    createNode({ ...node, id: p.id })
+  })
+
+  // indexing
+  const index = createIndex(prods)
+  createNode(prepareIndexNode(index))
+}
+
+const isAnyDupName = items => {
+  var names = items.map(item => item.name)
+  return names.some((name, idx) => names.indexOf(name) !== idx)
+}
+
+const createIndex = prods => {
   // create lunr search index and store
-  const index = lunr(function () {
+  const store = {}
+  const idx = lunr(function () {
     this.ref('id')
     this.field('name')
     this.field('description')
     this.field('tags')
     this.field('price')
 
-    docs.forEach(function (doc) {
+    prods.forEach(function (doc) {
       this.add(doc)
       store[doc.id] = doc
     }, this)
   })
-  fs.writeFileSync(indexFilePath, JSON.stringify({ index, store, categories }))
+  return { index: JSON.stringify({ idx, store }) }
 }
-
-const sortProductName = (a, b) =>
-  a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1
