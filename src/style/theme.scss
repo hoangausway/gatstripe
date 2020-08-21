@@ -1,5 +1,4 @@
 @import "./style.scss";
-@import "./svg.scss";
 
 /* Color palette defined */
 $scotch-color-key: "base" !default;
@@ -92,20 +91,26 @@ $product-bg: $color-fg;
 // nav
 $color-nav-bg: $color-primary-dark;
 $color-nav-switcher: $color-fg;
-
-// footer
-$footer-color-fg: $color-fg;
-$footer-color-bg: $color-primary-dark;
-$footer-color-fg-dark: scotch-color("secondary", "dark");
-$footer-color-link: $color-fresh-dark;
-$footer-color-link-beboss: $color-fresh-light;
-
-/* Dimensions */
-$top-left-align: 7vw;
-$top-intro-align: 2rem;
-$left-intro-align: 2rem;
-$bodypadding: 10vw;
-$bodyinside: 80vw;
+$color-cart-button-bg: $color-accent-light;
 
 // images
 $foods-right-bottom-img: "lr-circle-right-bottom.svg";
+
+
+// common layout settings
+$pad: 1rem;
+$direction: ltr;
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(10rem, 2fr) minmax(20rem, 3fr);
+  grid-template-rows: auto;
+  grid-gap: 0;
+  direction: $direction;
+  > * {
+    direction: ltr;
+  }
+
+  height: 100vh;
+  overflow: hidden;
+}

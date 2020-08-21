@@ -1,0 +1,81 @@
+@import "../style/theme.scss";
+$height: 1.8rem;
+
+// inherit layout from theme
+.layout {
+  padding-bottom: 0.5rem;
+  height: 2rem;
+  overflow-y: visible;
+}
+
+.smallheader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  background-color: $color-nav-bg;
+  padding: 0 $pad/2;
+  height: 100%;
+
+  // left button
+  :first-child {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    > button {
+      border: none;
+      color: white;
+      background-color: transparent;
+      text-align: center;
+      border: none;
+      text-decoration: none;
+      font-size: 1.75rem;
+      margin-right: 0.7rem;
+    }
+
+    > img {
+      width: 4.2rem;
+    }
+  }
+  // right
+  :last-child {
+    width: 60%;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    // input
+    :first-child {
+      font-size: 0.7rem;
+      margin-right: 0.5rem;
+      padding: 0.2rem 0.2rem;
+      width: 100%;
+      height: 100%;
+      margin-left: 0.5rem;
+      background-color: $color-nav-switcher;
+      color: $color-nav-bg;
+      outline: none;
+      border-radius: 5px;
+    }
+  }
+}
+
+.cartinfo {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+
+  background-color: $color-nav-bg;
+  color: white;
+  height: 100%;
+
+  > * {
+    padding: 0 $pad;
+  }
+}

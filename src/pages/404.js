@@ -1,15 +1,15 @@
 import React from 'react'
-import Layout from '../components/layout'
+import LayoutSmall from '../components/layout-small'
 import { Link } from 'gatsby'
 
 const NotFound = () => {
   return (
-    <Layout>
+    <LayoutSmall>
       <h1>404: Page Not Found</h1>
       <p>
         <Link to='/'>Check our foods</Link>
       </p>
-    </Layout>
+    </LayoutSmall>
   )
 }
 

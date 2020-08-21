@@ -1,0 +1,28 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+$fontHelv: Helvetica, Arial, sans-serif;
+$fontgillsans: "Gill Sans", sans-serif; // baseline ratio: 0.161
+$fontgillsansbaseline: 0.161;
+
+$fontimpact: Impact, Charcoal, sans-serif; // baseline ratio: 0.101074
+$fontimpactbaseline: 0.101074;
+
+body {
+  font-family: $fontgillsans;
+  font-size: 16px;
+  font-weight: lighter;
+  overflow-x: hidden;
+  color: black;
+}
+
+a,
+a:hover,
+a:visited,
+a:link,
+a:active {
+  text-decoration: none;
+}

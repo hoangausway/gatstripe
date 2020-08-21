@@ -103,10 +103,6 @@ const createFlexSearchIndex = prods => {
 
   console.log('index.info()', index.info())
 
-  index.search('meat', function (res) {
-    console.log('meat: --- ', res)
-  })
-
   //  serialize
   return { index: index.export({ index: true, doc: false }) } // index without docs
 }

@@ -1,0 +1,11 @@
+@import "../style/theme.scss";
+
+.listcart {
+  padding: $pad;
+  display: grid;
+  grid-template-columns: 3fr 5fr;
+  grid-template-rows: auto;
+  grid-gap: $pad;
+
+  border: 1px solid black;
+}

@@ -1,0 +1,74 @@
+@import "../style/theme.scss";
+
+$height: 1.8rem;
+
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  background-color: $color-nav-bg;
+  padding: 0 $pad/2;
+  height: 2rem;
+
+  // left button
+  :first-child {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  
+    > button {
+      border: none;
+      color: white;
+      background-color: transparent;
+      text-align: center;
+      border: none;
+      text-decoration: none;
+      font-size: 1.75rem;
+      margin-right: 0.7rem;
+    }
+
+    > img {
+      width: 4.2rem;
+    }
+  }
+  // right
+  :last-child {
+    width: 60%;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    // input
+    :first-child {
+      font-size: 0.7rem;
+      margin-right: 0.5rem;
+      padding: 0.2rem 0.2rem;
+      width: 100%;
+      height: 100%;
+      margin-left: 0.5rem;
+      background-color: $color-nav-switcher;
+      color: $color-nav-bg;
+      outline: none;
+      border-radius: 5px;
+    }
+
+    // link
+    :last-child {
+      font-size: 0.8rem;
+      width: 5rem;
+      height: 100%;
+      display: inline-block;
+      padding-top: 0.3rem;
+      padding-bottom: 0.2rem;
+      text-align: center;
+      background-color: $color-cart-button-bg;
+      color: $color-nav-switcher;
+      border-radius: 3px;
+    }
+  }
+}
