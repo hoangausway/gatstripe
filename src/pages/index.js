@@ -15,7 +15,7 @@ const Index = ({ data }) => {
     const items = data.items.edges.map(edge => edge.node)
     const extras = data.extras.edges.map(edge => edge.node)
     const index = data.index.edges[0].node.index
-    
+
     dispatch(aDataFeed({ items, extras, index }))
   }, [])
 
@@ -31,7 +31,7 @@ export default Index
 
 export const query = graphql`
   {
-    index: allLrStripeLunrIndex {
+    index: allLrStripeIndex {
       edges {
         node {
           id
@@ -42,6 +42,7 @@ export const query = graphql`
     items: allLrStripeItems(filter: { active: { eq: true } }) {
       edges {
         node {
+          nid
           id
           name
           category

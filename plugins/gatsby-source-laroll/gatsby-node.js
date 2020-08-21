@@ -1,3 +1,4 @@
+const FlexSearch = require('flexsearch')
 const lunr = require('lunr')
 const _ = require('lodash')
 const createNodeHelpers = require('gatsby-node-helpers').default
@@ -63,7 +64,7 @@ exports.sourceNodes = async (
 
   const prepareItemsNode = createNodeFactory('Items')
   const prepareExtrasNode = createNodeFactory('Extras')
-  const prepareIndexNode = createNodeFactory('LunrIndex')
+  const prepareIndexNode = createNodeFactory('Index')
 
   const [extraProds, prods] = _.partition(products, p => p.category === 'EXTRA')
 
@@ -72,35 +73,45 @@ exports.sourceNodes = async (
     createNode({ ...node, id: p.id })
   })
 
+  let c = 1
   prods.forEach(p => {
+    p.nid = c++ // add numbered id for faster searching later on
     const node = prepareItemsNode(p)
     createNode({ ...node, id: p.id })
   })
 
   // indexing
-  const index = createIndex(prods)
+  // const index = createIndex(prods)
+  const index = createFlexSearchIndex(prods)
   createNode(prepareIndexNode(index))
+}
+
+const createFlexSearchIndex = prods => {
+  // add numbered id for faster searching later on
+  const index = new FlexSearch({
+    encode: 'advanced',
+    tokenize: 'reverse',
+    suggest: true,
+    cache: true,
+    doc: {
+      id: 'nid',
+      field: ['name', 'tags', 'price']
+    }
+  })
+
+  index.add(prods)
+
+  console.log('index.info()', index.info())
+
+  index.search('meat', function (res) {
+    console.log('meat: --- ', res)
+  })
+
+  //  serialize
+  return { index: index.export({ index: true, doc: false }) } // index without docs
 }
 
 const isAnyDupName = items => {
   var names = items.map(item => item.name)
   return names.some((name, idx) => names.indexOf(name) !== idx)
-}
-
-const createIndex = prods => {
-  // create lunr search index and store
-  const store = {}
-  const idx = lunr(function () {
-    this.ref('id')
-    this.field('name')
-    this.field('description')
-    this.field('tags')
-    this.field('price')
-
-    prods.forEach(function (doc) {
-      this.add(doc)
-      store[doc.id] = doc
-    }, this)
-  })
-  return { index: JSON.stringify({ idx, store }) }
 }
