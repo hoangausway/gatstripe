@@ -58,6 +58,8 @@ exports.sourceNodes = async (
         p.category = item.category
         p.tags = item.tags
         p.gst = item.gst
+        p.options = item.options
+        console.log(item.options)
       }
     }
   })
@@ -88,7 +90,7 @@ exports.sourceNodes = async (
 
 const createFlexSearchIndex = prods => {
   // add numbered id for faster searching later on
-  const index = new FlexSearch({
+  const idx = new FlexSearch({
     encode: 'advanced',
     tokenize: 'reverse',
     suggest: true,
@@ -99,12 +101,13 @@ const createFlexSearchIndex = prods => {
     }
   })
 
-  index.add(prods)
+  idx.add(prods)
+  console.log('index.info()', idx.info())
 
-  console.log('index.info()', index.info())
+  //  serialize index without docs
+  const index = idx.export({ index: true, doc: false })
 
-  //  serialize
-  return { index: index.export({ index: true, doc: false }) } // index without docs
+  return { index }
 }
 
 const isAnyDupName = items => {
