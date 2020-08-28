@@ -1,5 +1,4 @@
 const FlexSearch = require('flexsearch')
-const lunr = require('lunr')
 const _ = require('lodash')
 const createNodeHelpers = require('gatsby-node-helpers').default
 const Stripe = require('stripe')

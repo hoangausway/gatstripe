@@ -3,4 +3,9 @@
 .cart {
   width: 100%;
   padding: $pad;
+
+  > div {
+    background-color: rgb(176, 241, 233);
+    margin-top: 0.5rem;
+  }
 }

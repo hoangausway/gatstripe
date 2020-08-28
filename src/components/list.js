@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from '@reach/router'
 import { graphql, useStaticQuery } from 'gatsby'
 import { useSelector, useDispatch } from 'react-redux'
 import cx from 'classnames'
@@ -22,7 +21,7 @@ const List = () => {
       return [
         c[0],
         c[1].map(p => {
-          const foundInCart = cart.find(i => i.productId === p.id)
+          const foundInCart = cart.find(i => i.id === p.id)
           return { ...p, inCart: !!foundInCart }
         })
       ]

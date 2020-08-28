@@ -107,6 +107,14 @@ export const query = graphql`
           priceCents
           priceId
           unit_label
+          options {
+            MILK
+            SAUCE
+            SERVE
+            SPREAD
+            SUGAR
+            VEGGIE
+          }
         }
       }
     }
