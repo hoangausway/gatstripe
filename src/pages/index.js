@@ -11,12 +11,12 @@ import List from '../components/list'
 import Cart from '../components/cart'
 import Options from '../components/options'
 import Success from '../components/success'
-import Fail from '../components/fail'
+import Cancel from '../components/cancel'
 import NotFound from '../components/notfound'
 
 import ListCart from '../components/list-cart'
 import OptionsCart from '../components/options-cart'
-import FailCart from '../components/fail-cart'
+import CancelCart from '../components/cancel-cart'
 import SuccessCart from '../components/success-cart'
 
 import { useDispatch } from 'react-redux'
@@ -28,18 +28,13 @@ const Index = ({ data }) => {
   const dispatch = useDispatch()
 
   React.useEffect(() => {
-    const items = data.items.edges.map(edge => edge.node)
-    const extras = data.extras.edges.map(edge => edge.node)
-    const index = data.index.edges[0].node.index
+    const jsonItems = data.products.edges[0].node.items
+    const jsonExtras = data.products.edges[0].node.extras
 
-    dispatch(aDataFeed({ items, extras, index }))
+    dispatch(aDataFeed({ jsonItems, jsonExtras }))
   }, [])
 
   return (
-    // <>
-    //   <Metadata title='Click & Collect' description='This is my home page' />
-    //   <Listing needle='' />
-    // </>
     <>
       <Metadata title='Click & Collect' description='This is my home page' />
       <SmallScreen>
@@ -50,7 +45,7 @@ const Index = ({ data }) => {
             <Cart path='cart' />
             <Options path='options' />
             <Success path='success' />
-            <Fail path='fail' />
+            <Cancel path='cancel' />
             <NotFound default />
           </Router>
         </LayoutSmall>
@@ -63,7 +58,7 @@ const Index = ({ data }) => {
             <ListCart path='cart' />
             <OptionsCart path='options' />
             <SuccessCart path='success' />
-            <FailCart path='fail' />
+            <CancelCart path='cancel' />
             <NotFound default />
           </Router>
         </LayoutBig>
@@ -86,48 +81,11 @@ const SmallScreen = ({ children }) => {
 
 export const query = graphql`
   {
-    index: allLrStripeIndex {
+    products: allLrStripeJsonData {
       edges {
         node {
-          id
-          index
-        }
-      }
-    }
-    items: allLrStripeItems(filter: { active: { eq: true } }) {
-      edges {
-        node {
-          nid
-          id
-          name
-          category
-          gst
           extras
-          price
-          priceCents
-          priceId
-          unit_label
-          options {
-            MILK
-            SAUCE
-            SERVE
-            SPREAD
-            SUGAR
-            VEGGIE
-          }
-        }
-      }
-    }
-    extras: allLrStripeExtras(filter: { active: { eq: true } }) {
-      edges {
-        node {
-          id
-          name
-          category
-          price
-          priceCents
-          priceId
-          unit_label
+          items
         }
       }
     }

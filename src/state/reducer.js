@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import ActionTypes from './action-types'
-import { toCategories, searchQuery } from '../components/utils'
+import { toCategories } from '../components/utils'
 import FlexSearch from 'flexsearch'
 
 export const initialAppState = {
@@ -41,15 +41,14 @@ const reducer = (state, { type, payload }) => {
 export default reducer
 
 // Helpers
-const initWithDataFeed = (state, { items, extras, index }) => {
+const initWithDataFeed = (state, { jsonItems, jsonExtras }) => {
   // remove options with null
-  const newItems = items.map(i =>
-    i.options ? { ...i, options: normalizeOptions(i.options) } : i
-  )
-  const categories = toCategories(newItems)
+  const items = JSON.parse(jsonItems)
+  const extras = JSON.parse(jsonExtras)
+  const categories = toCategories(items)
   return {
     ...state,
-    items: newItems,
+    items,
     extras,
     categories,
     index: createIndex(items),
@@ -114,11 +113,7 @@ const createIndex = items => {
   return index
 }
 
-// Helpers
-const normalizeOptions = options => {
-  return Object.keys(options).reduce(
-    (acc, key) =>
-      options[key] !== null ? { ...acc, [key]: options[key] } : acc,
-    {}
-  )
+const searchQuery = (index, needle) => {
+  if (!index) return []
+  return index.search(needle)
 }

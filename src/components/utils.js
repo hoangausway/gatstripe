@@ -1,7 +1,6 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import _ from 'lodash'
-import FlexSearch from 'flexsearch'
 import { Subject } from 'rxjs'
 import {
   map,
@@ -15,23 +14,6 @@ export const flattenNodes = nodes => nodes.map(n => n.node)
 export const searchQuery = (index, needle) => {
   if (!index) return []
   return index.search(needle)
-}
-
-export const loadIndex = index => {
-  const idx = new FlexSearch({
-    encode: 'advanced',
-    tokenize: 'reverse',
-    suggest: true,
-    cache: true
-  })
-  idx.import(index)
-  console.log('index.info()', idx.info())
-
-  idx.search('meat', function (res) {
-    console.log('meat: --- ', res)
-  })
-
-  return idx
 }
 
 export const useDispatchKeyUp = actionCreate => {

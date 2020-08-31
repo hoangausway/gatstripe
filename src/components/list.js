@@ -164,29 +164,29 @@ const Category = ({ category, products, img }) => {
         {catImg(img, style.catimage)}
       </div>
       <div className={style.flexCenter}>
-        <div className={style.products}>{productList(products)}</div>
+        <div className={style.products}>{itemList(products)}</div>
       </div>
     </div>
   )
 }
 
-const Product = ({ priceId, unitAmt, product }) => {
+const Item = ({ priceId, unitAmt, item }) => {
   const dispatch = useDispatch()
   const pickHandler = () =>
-    !product.inCart && dispatch(aCartAddItem(product.id))
+    !item.inCart && dispatch(aCartAddItem(item.id))
 
-  const inCart = product.inCart
+  const inCart = item.inCart
 
   return (
     <div className={style.flexCell}>
-      <div className={inCart ? cx(style.product, style.inCart) : style.product}>
-        <p className={style.name}>{product.name}</p>
+      <div className={inCart ? cx(style.item, style.inCart) : style.item}>
+        <p className={style.name}>{item.name}</p>
         <div className={style.priceandadd}>
           <span className={style.price}>
-            ${product.price} <span>{product.unit_label}</span>
+            ${item.price} <span>{item.unit_label}</span>
           </span>
           <span className={style.add} onClick={pickHandler}>
-            {product.inCart ? 'IN CART' : 'PICK'}
+            {item.inCart ? 'IN CART' : 'PICK'}
           </span>
         </div>
       </div>
@@ -203,8 +203,8 @@ const catImg = (img, style) => {
   )
 }
 
-const productList = products =>
-  products.map(product => <Product key={product.id} product={product} />)
+const itemList = items =>
+  items.map(item => <Item key={item.id} item={item} />)
 
 const catImage = (category, frontmatter) => {
   const imgName = category.toLowerCase().replace(/ /g, '')

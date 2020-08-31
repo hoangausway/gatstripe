@@ -5,7 +5,7 @@ import Cart from './cart'
 import style from './success.module.scss'
 
 const SuccessCart = ({ location }) => {
-  console.log('location', location)
+  console.log('location', location.href)
   return (
     <div className={style.layout}>
       <Success />

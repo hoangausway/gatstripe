@@ -1,16 +1,16 @@
 import React from 'react'
 
-import List from './list'
+import Cancel from './cancel'
 import Cart from './cart'
-import style from './list-cart.module.scss'
+import style from './cancel.module.scss'
 
-const ListCart = ({ location }) => {
+const CancelCart = ({ location }) => {
   console.log('location', location.href)
   return (
     <div className={style.layout}>
-      <List />
+      <Cancel />
       <Cart />
     </div>
   )
 }
-export default ListCart
+export default CancelCart

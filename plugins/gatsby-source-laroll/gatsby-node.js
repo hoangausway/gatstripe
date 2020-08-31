@@ -1,8 +1,7 @@
-const FlexSearch = require('flexsearch')
-const _ = require('lodash')
 const createNodeHelpers = require('gatsby-node-helpers').default
 const Stripe = require('stripe')
-const { items } = require('./products')
+// const { itemsObject, extrasObject } = require('./products')
+const { itemsObject, extrasObject } = require('../../functions/products')
 
 exports.onPreInit = () => {
   console.log('Testing plugin gatsby-source-laroll...')
@@ -12,17 +11,17 @@ exports.sourceNodes = async (
   { actions },
   { secretKey = '', indexFilePath }
 ) => {
-  // make sure items have uniqe names
-  if (isAnyDupName(items)) {
-    console.log('some name is duplicated')
-    return
-  }
-
   const { createNode } = actions
   const { createNodeFactory } = createNodeHelpers({
     typePrefix: 'LRStripe'
   })
 
+  /*
+    Get price list and product list
+    product: {id, name, description, metadata, ...rest}
+    price: {id, unit_amount, product, ...rest} where product is id of a product
+
+  */
   const stripe = new Stripe(secretKey)
   const priceListObject = await stripe.prices.list({ limit: 100 }) // limit 100
   const productListObject = await stripe.products.list({ limit: 100 })
@@ -30,86 +29,85 @@ exports.sourceNodes = async (
   const prices = priceListObject.data
   const products = productListObject.data
 
-  const itemsByName = items.reduce(
-    (acc, item) => ({ ...acc, [item.name]: item }),
-    {}
-  )
-  // first round processing
-  products.forEach(p => {
+  /*
+    Transform data: array of regular products and array of extra products
+    product:
+    {
+      key,
+      productId, priceId,
+      priceCents, price,
+      name,
+      description,
+      unit_label,
+      category,
+      options,
+      extras,
+      gst,
+      tags
+    }
+
+    pextra:
+    {
+      key,
+      productId, priceId,
+      priceCents, price,
+      name,
+      description
+      unit_label,
+      short_name
+    }
+  */
+
+  // merge price to product
+  const pp = products.map(p => {
     const price = prices.find(pce => pce.product === p.id)
-    if (price) {
-      // add price related fields
-      p.priceId = price.id
-      p.priceCents = price.unit_amount
-      p.price = (price.unit_amount / 100).toFixed(2)
+    return price ? { ...p, priceId: price.id, price: price.unit_amount } : p
+  })
 
-      if (p.metadata) {
-        p.extras = p.metadata.extras
-      }
+  // merger products to extras and items
+  const extras = Object.keys(extrasObject).map(k => {
+    const p = pp.find(p => p.metadata.key === k)
+    if (!p) {
+      return extrasObject[k] // something not matched; should raise error
+    }
 
-      // temporary set category as 'extra'
-      p.category = 'EXTRA'
-
-      const item = itemsByName[p.name]
-
-      if (item) {
-        // reset category for items which are not extra
-        p.category = item.category
-        p.tags = item.tags
-        p.gst = item.gst
-        p.options = item.options
-        console.log(item.options)
-      }
+    return {
+      ...extrasObject[k],
+      productId: p.id,
+      priceId: p.priceId,
+      chargePrice: p.price,
+      price: (p.price / 100).toFixed(2),
+      name: p.name,
+      id: k
     }
   })
 
-  const prepareItemsNode = createNodeFactory('Items')
-  const prepareExtrasNode = createNodeFactory('Extras')
-  const prepareIndexNode = createNodeFactory('Index')
+  const items = Object.keys(itemsObject).map(k => {
+    const p = pp.find(p => p.metadata.key === k)
+    if (!p) {
+      return itemsObject[k] // something not matched; should raise error
+    }
 
-  const [extraProds, prods] = _.partition(products, p => p.category === 'EXTRA')
-
-  extraProds.forEach(p => {
-    const node = prepareExtrasNode(p)
-    createNode({ ...node, id: p.id })
+    return {
+      ...itemsObject[k],
+      productId: p.id,
+      priceId: p.priceId,
+      chargePrice: p.price,
+      price: (p.price / 100).toFixed(2),
+      name: p.name,
+      id: k
+    }
   })
 
   let c = 1
-  prods.forEach(p => {
-    p.nid = c++ // add numbered id for faster searching later on
-    const node = prepareItemsNode(p)
-    createNode({ ...node, id: p.id })
-  })
+  items.forEach(i => (i.nid = c++)) // add numbered id for faster searching later on
 
-  // indexing
-  // const index = createIndex(prods)
-  const index = createFlexSearchIndex(prods)
-  createNode(prepareIndexNode(index))
-}
-
-const createFlexSearchIndex = prods => {
-  // add numbered id for faster searching later on
-  const idx = new FlexSearch({
-    encode: 'advanced',
-    tokenize: 'reverse',
-    suggest: true,
-    cache: true,
-    doc: {
-      id: 'nid',
-      field: ['name', 'tags', 'price']
-    }
-  })
-
-  idx.add(prods)
-  console.log('index.info()', idx.info())
-
-  //  serialize index without docs
-  const index = idx.export({ index: true, doc: false })
-
-  return { index }
-}
-
-const isAnyDupName = items => {
-  var names = items.map(item => item.name)
-  return names.some((name, idx) => names.indexOf(name) !== idx)
+  const prepareNode = createNodeFactory('JSONData')
+  createNode(
+    prepareNode({
+      items: JSON.stringify(items),
+      extras: JSON.stringify(extras),
+      id: 'Products'
+    })
+  )
 }

@@ -11,8 +11,6 @@
   "dependencies": {
     "flexsearch": "^0.6.32",
     "gatsby-node-helpers": "^0.3.0",
-    "lodash": "^4.17.20",
-    "lunr": "^2.3.8",
     "stripe": "8.64.0"
   }
 }
