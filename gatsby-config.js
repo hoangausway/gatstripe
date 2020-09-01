@@ -42,6 +42,19 @@ module.exports = {
       }
     },
     {
+      resolve: 'gatsby-plugin-manifest',
+      options: {
+        name: 'La Roll - Click & Collect',
+        short_name: 'La Roll',
+        start_url: '/',
+        background_color: '#f8f9fa',
+        theme_color: '#ce1b23',
+        icon: 'src/img/R500x500.png',
+        display: 'standalone'
+      }
+    },
+    'gatsby-plugin-offline',
+    {
       resolve: 'gatsby-source-laroll',
       options: {
         secretKey: process.env.STRIPE_SECRET_KEY

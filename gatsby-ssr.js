@@ -1,3 +1,2 @@
-// import AppContextProvider from './context-provider'
-
-// export const wrapRootElement = AppContextProvider
+import wrapWithProvider from './wrap-with-provider'
+export const wrapRootElement = wrapWithProvider

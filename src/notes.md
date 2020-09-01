@@ -1,3 +1,33 @@
+#Production build error:
+- gatsby build
+- Error:
+"You did not provide an API key. You need to provide your API key in the Authorization header, using Bearer auth   (e.g. 'Authorization: Bearer YOUR_SECRET_KEY'). See https://stripe.com/docs/api#authentication for details, or we can   help at https://support.stripe.com/"
+
+- Reason: missing .env.production
+- Fix: add .env.production with valid environment variables
+
+
+#Production build error:
+- gatsby build
+- Error: 
+"Building static HTML failed for path ..."
+eturn function useStore() {
+  20 |     var _useReduxContext = useReduxContext(),
+> 21 |         store = _useReduxContext.store;
+     | ^
+  22 | 
+  23 |     return store;
+  24 |   };
+"WebpackError: TypeError: Cannot read property 'store' of null"
+
+- Reason: gatsby-ssr.js doesn't have codes relating to wrapRootElement
+- Fix: gatsby-ssr.js
+Add the same codes as in gatsby-browser.js regarding 'wrapRootElement'
+import wrapWithProvider from './wrap-with-provider'
+export const wrapRootElement = wrapWithProvider
+
+
+<!-- Sample stripe notification objects sending to webhook endpoints -->
 export const handleChargeSucceeded1 = {
   id: 'evt_1HLlqaE6fo1LgU9nMoIZaewD',
   object: 'event',

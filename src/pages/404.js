@@ -14,3 +14,6 @@ const NotFound = () => {
 }
 
 export default NotFound
+
+// import NotFound from '../components/notfound'
+// export default NotFound
