@@ -20,7 +20,8 @@ import CancelCart from '../components/cancel-cart'
 import SuccessCart from '../components/success-cart'
 
 import { useDispatch } from 'react-redux'
-import { aDataFeed } from '../state/action-types'
+import { aDataFeed } from '../state/list-reducer'
+import { aCartLoad } from '../state/cart-reducer'
 
 import Metadata from '../components/metadata'
 
@@ -32,6 +33,8 @@ const Index = ({ data }) => {
     const jsonExtras = data.products.edges[0].node.extras
 
     dispatch(aDataFeed({ jsonItems, jsonExtras }))
+    // load cart from indexeddb
+    dispatch(aCartLoad())
   }, [])
 
   return (

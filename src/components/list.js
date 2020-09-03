@@ -3,7 +3,7 @@ import { graphql, useStaticQuery } from 'gatsby'
 import { useSelector, useDispatch } from 'react-redux'
 import cx from 'classnames'
 
-import { aCartAddItem } from '../state/action-types'
+import { aCartAddItem } from '../state/cart-reducer'
 
 import Img from 'gatsby-image'
 
@@ -13,15 +13,17 @@ const List = () => {
   const data = useStaticQuery(query)
 
   const cart = useSelector(state => state.cart)
-  const foundCats = useSelector(state => state.foundCats)
+
+  const foundCats = useSelector(state => state.list.foundCats)
   const [cats, setCats] = React.useState([])
 
   React.useEffect(() => {
+    console.log('cart.items', cart.items)
     const cs = foundCats.map(c => {
       return [
         c[0],
         c[1].map(p => {
-          const foundInCart = cart.find(i => i.id === p.id)
+          const foundInCart = cart.items.find(i => i.id === p.id)
           return { ...p, inCart: !!foundInCart }
         })
       ]
@@ -172,8 +174,7 @@ const Category = ({ category, products, img }) => {
 
 const Item = ({ priceId, unitAmt, item }) => {
   const dispatch = useDispatch()
-  const pickHandler = () =>
-    !item.inCart && dispatch(aCartAddItem(item.id))
+  const pickHandler = () => !item.inCart && dispatch(aCartAddItem(item))
 
   const inCart = item.inCart
 
@@ -203,8 +204,7 @@ const catImg = (img, style) => {
   )
 }
 
-const itemList = items =>
-  items.map(item => <Item key={item.id} item={item} />)
+const itemList = items => items.map(item => <Item key={item.id} item={item} />)
 
 const catImage = (category, frontmatter) => {
   const imgName = category.toLowerCase().replace(/ /g, '')

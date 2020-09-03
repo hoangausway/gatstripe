@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from '@reach/router'
 import { useDispatchKeyUp } from './utils'
 
-import { aNeedleChange } from '../state/action-types'
+import { aNeedleChange } from '../state/list-reducer'
 import style from './layout-small.module.scss'
 import lrlogo from '../img/lr-icon.svg'
 

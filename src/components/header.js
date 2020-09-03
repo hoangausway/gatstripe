@@ -3,7 +3,7 @@ import { Link, useStaticQuery, graphql } from 'gatsby'
 import styles from './header.module.scss'
 import { useDispatchKeyUp } from './utils'
 
-import { aNeedleChange } from '../state/action-types'
+import { aNeedleChange } from '../state/list-reducer'
 
 const Header = () => {
   // for animation of height change

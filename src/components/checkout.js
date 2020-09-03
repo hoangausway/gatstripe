@@ -12,10 +12,10 @@ const getStripe = () => {
 // !!!To be refactored: cart.email should be filled with valid email
 const Checkout = ({ cart }) => {
   const [loading, setLoading] = useState(false)
-  const amount = cart.reduce((acc, i) => acc + i.qty * i.chargePrice, 0)
+  const amount = cart.items.reduce((acc, i) => acc + i.qty * i.chargePrice, 0)
   const purchase = {
     mode: 'payment',
-    lineItems: cartLineItems(cart),
+    lineItems: cartLineItems(cart.items),
     successUrl: `${window.location.origin}/success`,
     cancelUrl: `${window.location.origin}/cancel`,
     clientReferenceId: `${cart.email}_${Date.now()}_${amount}`,
@@ -52,8 +52,8 @@ const Checkout = ({ cart }) => {
 export default Checkout
 
 // Helpers
-const cartLineItems = cart =>
-  cart.map(i => ({ price: i.priceId, quantity: i.qty }))
+const cartLineItems = items =>
+  items.map(i => ({ price: i.priceId, quantity: i.qty }))
 
 // Helpers CSS
 const buttonStyles = {

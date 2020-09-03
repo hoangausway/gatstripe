@@ -8,7 +8,7 @@ import {
   aCartDecQty,
   aCartRemItem,
   aCartAddItem
-} from '../state/action-types'
+} from '../state/cart-reducer'
 import style from './cart.module.scss'
 
 const Cart = ({ location }) => {
@@ -22,9 +22,9 @@ const Cart = ({ location }) => {
       <h3>Cart</h3>
       <Checkout cart={cart} />
       <section>
-        {cart.map(i => (
+        {cart.items.map(i => (
           <div key={i.itemId}>
-            <p>{`${i.name} --- Qty: ${i.qty} --- `}</p>
+            <p>{`${i.name} --- $${i.price} --- Qty: ${i.qty} `}</p>
             <button onClick={e => dispatch(aCartIncQty(i.itemId))}>
               Qty +
             </button>
@@ -34,9 +34,7 @@ const Cart = ({ location }) => {
             <button onClick={e => dispatch(aCartRemItem(i.itemId))}>
               Remove Item
             </button>
-            <button onClick={e => dispatch(aCartAddItem(i.id))}>
-              New Item
-            </button>
+            <button onClick={e => dispatch(aCartAddItem(i))}>New Item</button>
           </div>
         ))}
       </section>

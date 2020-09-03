@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatchKeyUp } from './utils'
 
-import { aNeedleChange } from '../state/action-types'
+import { aNeedleChange } from '../state/list-reducer'
 
 import style from './layout-big.module.scss'
 import lrlogo from '../img/lr-icon.svg'
