@@ -9,40 +9,28 @@ export const CartActions = {
 }
 
 // action creators
-export const aCartLoaded = cart => ({
+const aCartLoaded = cart => ({
   type: CartActions.CART_LOADED,
   payload: cart
 })
 
-export const aCartUpdated = cart => ({
+const aCartUpdated = cart => ({
   type: CartActions.CART_UPDATED,
   payload: cart
 })
 
 // asynchronous action creators
-export const aCartAddItem = item => dispatch => {
-  return updateCartItems(item, addItem).then(cart =>
-    dispatch(aCartUpdated(cart))
-  )
-}
+export const aCartAddItem = item => dispatch =>
+  updateCartItems(addItem, item).then(cart => dispatch(aCartUpdated(cart)))
 
-export const aCartRemItem = itemId => dispatch => {
-  return updateCartItems(itemId, remItem).then(cart =>
-    dispatch(aCartUpdated(cart))
-  )
-}
+export const aCartRemItem = itemId => dispatch =>
+  updateCartItems(remItem, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
-export const aCartIncQty = itemId => dispatch => {
-  return updateCartItems(itemId, incQty).then(cart =>
-    dispatch(aCartUpdated(cart))
-  )
-}
+export const aCartIncQty = itemId => dispatch =>
+  updateCartItems(incQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
-export const aCartDecQty = itemId => dispatch => {
-  return updateCartItems(itemId, decQty).then(cart =>
-    dispatch(aCartUpdated(cart))
-  )
-}
+export const aCartDecQty = itemId => dispatch =>
+  updateCartItems(decQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
 export const aCartLoad = () => dispatch =>
   load().then(cart => dispatch(aCartLoaded(cart)))
@@ -103,7 +91,7 @@ const setCart = cart => set('cart', cart).then(() => Promise.resolve(cart))
 
 // updateCartItems:: param -> f -> Promise.resolve(cart)
 // f:: param -> cart -> cart
-const updateCartItems = (param, f) =>
+const updateCartItems = (f, param) =>
   getCart()
     .then(f(param))
     .then(setCart)
