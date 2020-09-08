@@ -1,5 +1,5 @@
 import React from 'react'
-import { useDispatchKeyUp } from './utils'
+import { useKeyupAction } from './utils'
 
 import { aNeedleChange } from '../state/list-reducer'
 
@@ -18,7 +18,7 @@ const LayoutBig = props => {
 export default LayoutBig
 
 export const Header = () => {
-  const keyupEmit = useDispatchKeyUp(aNeedleChange)
+  const keyupEmit = useKeyupAction(aNeedleChange)
   return (
     <div className={style.layout}>
       <div className={style.smallheader}>

@@ -2,8 +2,8 @@ import { toCategories } from '../components/utils'
 import FlexSearch from 'flexsearch'
 
 export const ListActions = {
-  DATA_FEED: 'data feed',
-  NEEDLE_CHANGE: 'needle change'
+  DATA_FEED: 'DATA_FEED',
+  NEEDLE_CHANGE: 'NEEDLE_CHANGE'
 }
 
 /* Action creators */

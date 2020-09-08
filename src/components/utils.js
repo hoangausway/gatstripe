@@ -16,7 +16,7 @@ export const searchQuery = (index, needle) => {
   return index.search(needle)
 }
 
-export const useDispatchKeyUp = actionCreate => {
+export const useKeyupAction = actionCreate => {
   const dispatch = useDispatch()
   // useMemo to not call everytime component rerenders
   const keyup$ = React.useMemo(() => new Subject(), [])
@@ -24,9 +24,10 @@ export const useDispatchKeyUp = actionCreate => {
     return keyup$.pipe(
       map(e => e.target.value),
       debounceTime(300),
-      distinctUntilChanged(),
-      map(chars => chars.toLowerCase()),
-      startWith('')
+      distinctUntilChanged()
+      // ,
+      // map(chars => chars.toLowerCase()),
+      // startWith('')
     )
   }, [])
 

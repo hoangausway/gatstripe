@@ -1,11 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { set, get } from 'idb-keyval'
-import { dispatch } from 'rxjs/internal/observable/pairs'
 
 // types
 export const CartActions = {
-  CART_LOADED: 'cart loaded',
-  CART_UPDATED: 'cart updated'
+  CART_LOADED: 'CART_LOADED',
+  CART_UPDATED: 'CART_UPDATED'
 }
 
 // action creators
@@ -21,27 +20,21 @@ const aCartUpdated = cart => ({
 
 // asynchronous action creators
 export const aCartAddItem = item => dispatch =>
-  updateCartItems(addItem, item).then(cart => dispatch(aCartUpdated(cart)))
+  updateCart(addItem, item).then(cart => dispatch(aCartUpdated(cart)))
 
 export const aCartRemItem = itemId => dispatch =>
-  updateCartItems(remItem, itemId).then(cart => dispatch(aCartUpdated(cart)))
+  updateCart(remItem, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
 export const aCartIncQty = itemId => dispatch =>
-  updateCartItems(incQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
+  updateCart(incQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
 export const aCartDecQty = itemId => dispatch =>
-  updateCartItems(decQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
+  updateCart(decQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
 export const aCartLoad = () => dispatch =>
   load().then(cart => dispatch(aCartLoaded(cart)))
 
 // cart contents
-const MailStatus = {
-  MAIL_UNVERIFIED: 'not verified',
-  MAIL_VERIFYING: 'verifying',
-  MAIL_VERIMAIED: 'verified'
-}
-
 const CartStatus = {
   CART_CREATED: 'created',
   CART_CHARGED: 'charged',
@@ -54,10 +47,6 @@ const CartStatus = {
 export const cartInitialState = {
   cartId: '',
   items: [], // {itemId, qty, extras, options, priceId, productId}
-  name: '',
-  phone: '',
-  email: null,
-  verified: MailStatus.MAIL_UNVERIFIED,
   dateCreated: null,
   dateCharged: null,
   dateRemoved: null,
@@ -91,7 +80,7 @@ const setCart = cart => set('cart', cart).then(() => Promise.resolve(cart))
 
 // updateCartItems:: param -> f -> Promise.resolve(cart)
 // f:: param -> cart -> cart
-const updateCartItems = (f, param) =>
+const updateCart = (f, param) =>
   getCart()
     .then(f(param))
     .then(setCart)

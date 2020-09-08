@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from '@reach/router'
-import { useDispatchKeyUp } from './utils'
+import { useKeyupAction } from './utils'
 
 import { aNeedleChange } from '../state/list-reducer'
 import style from './layout-small.module.scss'
@@ -18,7 +18,7 @@ const LayoutSmall = props => {
 export default LayoutSmall
 
 export const Header = () => {
-  const keyupEmit = useDispatchKeyUp(aNeedleChange)
+  const keyupEmit = useKeyupAction(aNeedleChange)
 
   return (
     <div className={style.header}>

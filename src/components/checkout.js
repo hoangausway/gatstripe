@@ -10,28 +10,23 @@ const getStripe = () => {
 }
 
 // !!!To be refactored: cart.email should be filled with valid email
-const Checkout = ({ cart }) => {
+const Checkout = ({ cart, user }) => {
   const [loading, setLoading] = useState(false)
-  const amount = cart.items.reduce((acc, i) => acc + i.qty * i.chargePrice, 0)
-  const purchase = {
+  const purchase = () => ({
     mode: 'payment',
     lineItems: cartLineItems(cart.items),
     successUrl: `${window.location.origin}/success`,
     cancelUrl: `${window.location.origin}/cancel`,
-    clientReferenceId: `${cart.email}_${Date.now()}_${amount}`,
-    customerEmail: cart.email
-      ? cart.email
-      : process.env.FULFILLMENT_EMAIL_ADDRESS
-  }
-
-  console.log('clientReferenceId', purchase.clientReferenceId)
+    clientReferenceId: cart.cartId,
+    customerEmail: user.email
+  })
 
   const redirectToCheckout = async event => {
     event.preventDefault()
     setLoading(true)
 
     const stripe = await getStripe()
-    await stripe.redirectToCheckout(purchase)
+    await stripe.redirectToCheckout(purchase())
 
     setLoading(false)
   }
@@ -52,8 +47,25 @@ const Checkout = ({ cart }) => {
 export default Checkout
 
 // Helpers
-const cartLineItems = items =>
-  items.map(i => ({ price: i.priceId, quantity: i.qty }))
+const cartLineItems = items => {
+  const extraItems = items.reduce(
+    (acc, i) => acc.concat(i.extraItems || []),
+    []
+  )
+
+  return mergeByPriceId(items).concat(mergeByPriceId(extraItems))
+}
+
+const mergeByPriceId = items => {
+  return items.reduce((acc, i, idx) => {
+    const p = acc.find(p => p.price && p.price === i.priceId)
+
+    if (!p) return acc.concat([{ price: i.priceId, quantity: i.qty }])
+
+    p.quantity = p.quantity + i.qty
+    return acc
+  }, [])
+}
 
 // Helpers CSS
 const buttonStyles = {
