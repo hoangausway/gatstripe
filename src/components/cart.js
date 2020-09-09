@@ -3,13 +3,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from '@reach/router'
 
 import Checkout from './checkout'
-import { useKeyupAction } from './utils'
-import {
-  aUserConfirmEmail,
-  aUserChangeEmail,
-  aUserChangeName,
-  aUserChangePhone
-} from '../state/user-reducer'
+import Contact from './contact'
+
 import {
   aCartIncQty,
   aCartDecQty,
@@ -22,51 +17,13 @@ const Cart = ({ location }) => {
   const nav = useNavigate()
 
   const cart = useSelector(state => state.cart)
-  const user = useSelector(state => state.user)
 
   const dispatch = useDispatch()
-
-  const emailKeyupEmit = useKeyupAction(aUserChangeEmail)
-  const nameKeyupEmit = useKeyupAction(aUserChangeName)
-  const phoneKeyupEmit = useKeyupAction(aUserChangePhone)
 
   return (
     <div className={style.cart}>
       <h3>Cart</h3>
-      <Checkout cart={cart} user={user} />
-      <section>
-        <div>
-          <input
-            id='name'
-            type='text'
-            placeholder='name'
-            onKeyUp={nameKeyupEmit}
-            defaultValue={user.name}
-          />
-          <input
-            id='phone'
-            type='text'
-            placeholder='phone'
-            onKeyUp={phoneKeyupEmit}
-            defaultValue={user.phone}
-          />
-        </div>
-        <div>
-          <input
-            id='email'
-            type='text'
-            placeholder='email'
-            onKeyUp={emailKeyupEmit}
-            defaultValue={user.email}
-          />
-          <button
-            disabled={user.verified}
-            onClick={e => dispatch(aUserConfirmEmail(user))}
-          >
-            {user.verified ? 'Verified' : 'Not verified'}
-          </button>
-        </div>
-      </section>
+      <Contact />
       <section>
         {cart.items.map(i => (
           <div key={i.itemId}>
@@ -89,6 +46,7 @@ const Cart = ({ location }) => {
       <div onClick={e => nav('../options')}>click going to OPTIONS</div>
       <div onClick={e => nav('../success')}>click going to SUCCESS</div>
       <div onClick={e => nav('../cancel')}>click going to CANCEL</div>
+      <div onClick={e => nav('../contact')}>To Contact</div>
     </div>
   )
 }

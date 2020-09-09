@@ -13,6 +13,7 @@ import Options from '../components/options'
 import Success from '../components/success'
 import Cancel from '../components/cancel'
 import VerifyEmail from '../components/verify-email'
+import Contact from '../components/contact'
 
 import NotFound from '../components/notfound'
 
@@ -21,6 +22,7 @@ import OptionsCart from '../components/options-cart'
 import CancelCart from '../components/cancel-cart'
 import SuccessCart from '../components/success-cart'
 import VerifyEmailCart from '../components/verify-email-cart'
+import ContactCart from '../components/contact-cart'
 
 import { useDispatch } from 'react-redux'
 import { aDataFeed } from '../state/list-reducer'
@@ -55,6 +57,7 @@ const Index = ({ data }) => {
             <Options path='options' />
             <Success path='success' />
             <Cancel path='cancel' />
+            <Contact path='contact' />
             <VerifyEmail path='verify-email/:token' />
             <NotFound default />
           </Router>
@@ -69,6 +72,7 @@ const Index = ({ data }) => {
             <OptionsCart path='options' />
             <SuccessCart path='success' />
             <CancelCart path='cancel' />
+            <ContactCart path='contact' />
             <VerifyEmailCart path='verify-email/:token' />
             <NotFound default />
           </Router>

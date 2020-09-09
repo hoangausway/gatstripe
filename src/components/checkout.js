@@ -12,6 +12,8 @@ const getStripe = () => {
 // !!!To be refactored: cart.email should be filled with valid email
 const Checkout = ({ cart, user }) => {
   const [loading, setLoading] = useState(false)
+  const [total, setTotal] = useState(0)
+
   const purchase = () => ({
     mode: 'payment',
     lineItems: cartLineItems(cart.items),
@@ -31,6 +33,10 @@ const Checkout = ({ cart, user }) => {
     setLoading(false)
   }
 
+  React.useEffect(() => {
+    setTotal(calTotal(cart.items))
+  }, [cart.items])
+
   return (
     <button
       disabled={loading}
@@ -39,7 +45,7 @@ const Checkout = ({ cart, user }) => {
       }
       onClick={redirectToCheckout}
     >
-      Checkout
+      {`Checkout $${total}`}
     </button>
   )
 }
@@ -47,15 +53,6 @@ const Checkout = ({ cart, user }) => {
 export default Checkout
 
 // Helpers
-const cartLineItems = items => {
-  const extraItems = items.reduce(
-    (acc, i) => acc.concat(i.extraItems || []),
-    []
-  )
-
-  return mergeByPriceId(items).concat(mergeByPriceId(extraItems))
-}
-
 const mergeByPriceId = items => {
   return items.reduce((acc, i, idx) => {
     const p = acc.find(p => p.price && p.price === i.priceId)
@@ -65,6 +62,29 @@ const mergeByPriceId = items => {
     p.quantity = p.quantity + i.qty
     return acc
   }, [])
+}
+
+const cartLineItems = items => {
+  const extraItems = items.reduce(
+    (acc, i) => acc.concat(i.extraItems || []),
+    []
+  )
+
+  return mergeByPriceId(items).concat(mergeByPriceId(extraItems))
+}
+
+const calTotal = items => {
+  const extraItems = items.reduce(
+    (acc, i) => acc.concat(i.extraItems || []),
+    []
+  )
+
+  const extrasTotal = extraItems.reduce(
+    (acc, i) => acc + i.chargePrice * i.qty,
+    0
+  )
+  const itemsTotal = items.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
+  return ((extrasTotal + itemsTotal) / 100).toFixed(2)
 }
 
 // Helpers CSS

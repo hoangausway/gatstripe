@@ -4,6 +4,7 @@ import { useNavigate } from '@reach/router'
 
 import { aUserVerifyEmail } from '../state/user-reducer'
 import style from './verify-email.module.scss'
+import Notifications, { notify } from 'react-notify-toast'
 
 const verifyingStatus = {
   VERIFYING: 'Verifying...',
@@ -27,11 +28,15 @@ const VerifyEmail = props => {
   }, [])
 
   React.useEffect(() => {
-    if (user.verified) setVerifying(verifyingStatus.VERIFIED)
+    if (user.verified) {
+      setVerifying(verifyingStatus.VERIFIED)
+      notify.show(`user.verified: ${user.verified}`)
+    }
   }, [user.verified])
 
   return (
     <div>
+      <Notifications />
       <h3>Verifying email</h3>
       <div>{verifying}</div>
       <div onClick={e => nav('../cart')}>click going to CART</div>

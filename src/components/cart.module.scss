@@ -9,32 +9,8 @@
     padding: 0.2rem;
   }
 
-  > div {
-    background-color: rgb(176, 241, 233);
-    margin-top: 0.5rem;
-  }
-
-  section:nth-child(odd) {
-    > div input {
-      margin: 0.3rem;
-      padding: 0.1rem;
-      color: blue;
-    }
-
-    > div button {
-      padding: 0.1rem;
-      margin: 0.3rem;
-      width: 5rem;
-    }
-
-    > div button.confirmed:disabled {
-      color: gray;
-      padding: 0.1rem;
-      margin: 0.3rem;
-      width: 5rem;
-    }
-  }
-  section:nth-child(even) {
+  // items
+  section {
     > div > p {
       margin-top: 0.7rem;
       color: blue;

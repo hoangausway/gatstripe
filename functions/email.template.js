@@ -9,9 +9,21 @@ const sendLink = email => link => {
     to: email,
     from: process.env.FROM_EMAIL_ADDRESS,
     subject: 'La Roll Online: Verifying email',
-    text: `<a href=${link}>Click to confirm email. The link is valid in next 24 hours.</a>`
+    html: `<html><p>To validate your email, please click the link <a href='${link}'>confirm</a>, then follow the instructions.<p>
+    <p>Note that, for security this link will be expired in 24 hours.</p></html>`
   }
-  sgMail.send(msg)
+  console.log(msg)
+  return sgMail.send(msg).then(
+    () => {
+      console.log('sent email to: ', email)
+    },
+    error => {
+      console.error(error)
+      if (error.response) {
+        console.error(error.response.body)
+      }
+    }
+  )
 }
 
 module.exports = { sendLink }

@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import { set, get } from 'idb-keyval'
 
 // types
@@ -19,20 +18,20 @@ const aUserUpdated = cart => ({
 })
 
 // asynchronous action creators
-export const aUserVerifyEmail = token => dispatch =>
-  verifyUser(token)(verifyUserUrl).then(user => dispatch(aUserUpdated(user)))
+export const aUserVerifyEmail = user => dispatch =>
+  verify(user).then(user => dispatch(aUserUpdated(user)))
 
-export const aUserConfirmEmail = user => dispatch =>
-  confirmUser(user)(confirmUserUrl).then(user => dispatch(aUserUpdated(user)))
+export const aUserConfirmEmail = token => dispatch =>
+  confirm(token).then(user => dispatch(aUserUpdated(user)))
 
 export const aUserChangeEmail = email => dispatch =>
-  updateUser(changeEmail, email).then(user => dispatch(aUserUpdated(user)))
+  updateUserProp(changeEmail, email).then(user => dispatch(aUserUpdated(user)))
 
 export const aUserChangeName = name => dispatch =>
-  updateUser(changeName, name).then(user => dispatch(aUserUpdated(user)))
+  updateUserProp(changeName, name).then(user => dispatch(aUserUpdated(user)))
 
 export const aUserChangePhone = phone => dispatch =>
-  updateUser(changePhone, phone).then(user => dispatch(aUserUpdated(user)))
+  updateUserProp(changePhone, phone).then(user => dispatch(aUserUpdated(user)))
 
 export const aUserLoad = () => dispatch =>
   load().then(user => dispatch(aUserLoaded(user)))
@@ -43,9 +42,7 @@ export const userInitialState = {
   phone: '',
   email: null,
   verified: false,
-  dateCreated: null,
-  dateUpdated: null,
-  dateRemoved: null
+  dateUpdated: null
 }
 
 // reducer
@@ -66,91 +63,47 @@ const load = () => getUser().then(setUser)
 // getUser:: () -> Promise.resolve(user)
 const getUser = () => {
   return get('user').then(
-    user =>
-      user || { ...userInitialState, userId: uuidv4(), dateCreated: Date.now() }
+    user => user || { ...userInitialState, dateUpdated: Date.now() }
   )
 }
 
 // setUser:: user -> Promise.resolve(user)
 const setUser = user => set('user', user).then(() => Promise.resolve(user))
 
-// updateUser:: f -> param -> Promise.resolve(user)
+// updateUserProp:: f -> prop -> Promise.resolve(user)
 // f:: param -> user -> user
-const updateUser = (f, param) => {
+const updateUserProp = (f, prop) => {
   return getUser()
-    .then(f(param))
+    .then(f(prop))
     .then(setUser)
 }
-const changeEmail = email => user => ({ ...user, email, verified: false })
-
+const changeEmail = email => user => ({ ...user, email })
 const changeName = name => user => ({ ...user, name })
-
 const changePhone = phone => user => ({ ...user, phone })
 
-// verifyUser:: a -> b -> Promise.resovle(a)
-const verifyUser = token => url => {
-  return (
-    window
-      .fetch(url, verifyUserRequest(token))
-      .then(res => res.json())
-      .then(ret => {
-        return getUser().then(user => {
-          return setUser({
-            ...user,
-            email: ret.email,
-            name: ret.name,
-            phone: ret.phone,
-            verified: ret.verified
-          })
-        })
-      })
-      // error: just retirn current user
-      .catch(err => {
-        console.log(err)
-        return load()
-      })
-  )
+// Update user returning from server
+const updateUser = ({ name, phone, email, verified }) => {
+  return setUser({ name, phone, email, verified, dateUpdated: Date.now() })
 }
 
-const confirmUser = user => url => {
-  return (
-    window
-      .fetch(url, confirmUserRequest(user))
-      .then(res => res.json())
-      .then(ret =>
-        getUser().then(user =>
-          setUser({
-            ...user,
-            email: ret.email,
-            name: ret.name,
-            phone: ret.phone,
-            verified: ret.verified
-          })
-        )
-      )
-      // error: just retirn current user
-      .catch(err => {
-        console.log(err)
-        return load()
-      })
-  )
+// verify:: a -> Promise.resolve(a)
+const verify = user => {
+  return window
+    .fetch(urlVerify, reqVerify(user))
+    .then(res => {
+      if (res.status === 200) {
+        return res.json()
+      }
+      return Promise.reject(res.body)
+    }) // expected format {email, name, phone, verified}
+    .then(updateUser)
+    .catch(err => {
+      console.log(err)
+      return load() // error: just return current user array
+    })
 }
-
-const verifyUserUrl = '/.netlify/functions/verify-email'
-const confirmUserUrl = '/.netlify/functions/confirm-email'
-
-const verifyUserRequest = token => ({
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-    Accept: 'application/json',
-    'Content-Type': 'application/json'
-  },
-  mode: 'cors',
-  method: 'POST',
-  body: JSON.stringify({ token })
-})
-
-const confirmUserRequest = user => ({
+const urlVerify = '/.netlify/functions/verify-email'
+const reqVerify = user => ({
   headers: {
     'Access-Control-Allow-Origin': '*',
     Accept: 'application/json',
@@ -159,4 +112,32 @@ const confirmUserRequest = user => ({
   mode: 'cors',
   method: 'POST',
   body: JSON.stringify(user)
+})
+
+// confirm:: a -> Promise.resolve(b)
+const confirm = token => {
+  return window
+    .fetch(urlConfirm, reqConfirm(token))
+    .then(res => {
+      if (res.status === 200) {
+        return res.json()
+      }
+      return Promise.reject(res.body)
+    }) // expected format {email, name, phone, verified}
+    .then(updateUser)
+    .catch(err => {
+      console.log(err)
+      return load()
+    })
+}
+const urlConfirm = '/.netlify/functions/confirm-email'
+const reqConfirm = token => ({
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    Accept: 'application/json',
+    'Content-Type': 'application/json'
+  },
+  mode: 'cors',
+  method: 'POST',
+  body: JSON.stringify({ token })
 })
