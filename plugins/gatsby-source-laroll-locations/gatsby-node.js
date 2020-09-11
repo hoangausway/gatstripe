@@ -1,10 +1,11 @@
 const createNodeHelpers = require('gatsby-node-helpers').default
 const Stripe = require('stripe')
-// const { itemsObject, extrasObject } = require('./products')
+
 const { itemsObject, extrasObject } = require('../../functions/products')
+const locations = require('./locations')
 
 exports.onPreInit = () => {
-  console.log('Testing plugin gatsby-source-laroll...')
+  console.log('Testing plugin gatsby-source-laroll-prices...')
 }
 
 exports.sourceNodes = async (
@@ -105,6 +106,7 @@ exports.sourceNodes = async (
   const prepareNode = createNodeFactory('JSONData')
   createNode(
     prepareNode({
+      locations: JSON.stringify(locations),
       items: JSON.stringify(items),
       extras: JSON.stringify(extras),
       id: 'Products'

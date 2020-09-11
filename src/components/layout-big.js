@@ -5,6 +5,7 @@ import { aNeedleChange } from '../state/list-reducer'
 
 import style from './layout-big.module.scss'
 import lrlogo from '../img/lr-icon.svg'
+import Checkout from './checkout'
 
 const LayoutBig = props => {
   return (
@@ -35,8 +36,8 @@ export const Header = () => {
         </div>
       </div>
       <div className={style.cartinfo}>
-        <span>Cart information here</span>
-        <span>Cart information here</span>
+        <div>Cart</div>
+        <div className={style.checkout_button}><Checkout /></div>
       </div>
     </div>
   )

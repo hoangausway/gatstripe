@@ -2,6 +2,7 @@
 
 .cart {
   width: 100%;
+  overflow: scroll;
   padding: $pad;
 
   > button {
@@ -11,13 +12,49 @@
 
   // items
   section {
-    > div > p {
-      margin-top: 0.7rem;
-      color: blue;
+    > div:nth-of-type(odd) {
+      background-color:rgb(237, 248, 236);
     }
+  }
+}
 
-    > div > button {
-      margin: 0.2rem;
-    }
+.item_line1 {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-top: solid 1px green;
+  font-family: $fontHelv;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: darkblue;
+  
+  div:nth-child(1) {
+    width: 75%;
+  }
+  div:nth-child(2) {
+    width: 10%;
+    text-align: right;
+  }
+  div:nth-child(3) {
+    width: 5%;
+    text-align: right;
+    font-weight: 600;
+    margin-left: 0.3rem;
+  }
+  div:nth-child(4) {
+    width: 5%;
+    text-align: right;
+    color: red;
+  }
+}
+
+.item_line2 {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+  
+  button {
+    margin-left: 0.5rem;
+    padding: 0.2rem;
   }
 }

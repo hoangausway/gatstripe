@@ -4,22 +4,26 @@
   display: flex;
   justify-content: space-between;
   width: 100%;
-  height: 2rem;
-  padding: 0.2rem;
+  height: 2.5rem;
+  padding: 0.4rem 0;
 
   input {
-    padding: 0.2rem;
-    margin: 0.2rem;
+    font-size: 0.75rem;
+    padding: 0 0.2rem;
+    border-radius: 5px;
+    border: solid darkgray 1px;
+    background-color: $color-fg;
   }
   
   input:nth-child(1) {
-    width: 30%;
-    background-color: red;
+    width: 26%;
   }
   input:nth-child(2) {
-    width: 25%;
+    width: 30%;
+    margin: 0 0.2rem;
   }
   input:nth-child(3) {
-    width: 45%;
+    width: 44%;
+    background-color: palegoldenrod;
   }
 }

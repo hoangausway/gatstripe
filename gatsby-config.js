@@ -55,10 +55,11 @@ module.exports = {
     },
     'gatsby-plugin-offline',
     {
-      resolve: 'gatsby-source-laroll',
+      resolve: 'gatsby-source-laroll-products',
       options: {
         secretKey: process.env.STRIPE_SECRET_KEY
       }
-    }
+    },
+    'gatsby-source-laroll-locations'
   ]
 }

@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
+import { useSelector } from 'react-redux'
+import cx from 'classnames'
+import style from './checkout.module.scss'
 
 let stripePromise
 const getStripe = () => {
@@ -9,11 +12,20 @@ const getStripe = () => {
   return stripePromise
 }
 
-// !!!To be refactored: cart.email should be filled with valid email
-const Checkout = ({ cart, user }) => {
+/*
+  3 factors for checkout process
+  - Who: name, phone, and a VALID email. Verify and confirm against server.
+  - Where: outlet. Available offline in app.
+  - What: item list. Available offline in app.
+*/
+const Checkout = () => {
+  const cart = useSelector(state => state.cart)
+  const user = useSelector(state => state.user)
+
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
 
+  // stripe purchase structure
   const purchase = () => ({
     mode: 'payment',
     lineItems: cartLineItems(cart.items),
@@ -22,6 +34,14 @@ const Checkout = ({ cart, user }) => {
     clientReferenceId: cart.cartId,
     customerEmail: user.email
   })
+
+  const handler = e => {
+    // check outlet
+
+    // check contact: verify-email against server
+    
+
+  }
 
   const redirectToCheckout = async event => {
     event.preventDefault()
@@ -38,15 +58,15 @@ const Checkout = ({ cart, user }) => {
   }, [cart.items])
 
   return (
-    <button
+    <div
       disabled={loading}
-      style={
-        loading ? { ...buttonStyles, ...buttonDisabledStyles } : buttonStyles
+      className={
+        loading ? cx(style.button, style.button_disable) : style.button
       }
       onClick={redirectToCheckout}
     >
       {`Checkout $${total}`}
-    </button>
+    </div>
   )
 }
 
@@ -85,21 +105,4 @@ const calTotal = items => {
   )
   const itemsTotal = items.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
   return ((extrasTotal + itemsTotal) / 100).toFixed(2)
-}
-
-// Helpers CSS
-const buttonStyles = {
-  fontSize: '13px',
-  textAlign: 'center',
-  color: '#000',
-  padding: '12px 60px',
-  boxShadow: '2px 5px 10px rgba(0,0,0,.1)',
-  backgroundColor: 'rgb(255, 178, 56)',
-  borderRadius: '6px',
-  letterSpacing: '1.5px'
-}
-
-const buttonDisabledStyles = {
-  opacity: '0.5',
-  cursor: 'not-allowed'
 }

@@ -22,6 +22,9 @@ const aCartUpdated = cart => ({
 export const aCartAddItem = item => dispatch =>
   updateCart(addItem, item).then(cart => dispatch(aCartUpdated(cart)))
 
+export const aCartCopyItem = item => dispatch =>
+  updateCart(copyItem, item).then(cart => dispatch(aCartUpdated(cart)))
+
 export const aCartRemItem = itemId => dispatch =>
   updateCart(remItem, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
@@ -46,7 +49,9 @@ const CartStatus = {
 // cart shape:
 export const cartInitialState = {
   cartId: '',
-  items: [], // {itemId, qty, extras, options, priceId, productId}
+  user: { name: '', phone: '', email: '' },
+  location: { locId: '', address: '' },
+  items: [], // [..., {itemId, qty, extras, options, priceId, productId}]
   dateCreated: null,
   dateCharged: null,
   dateRemoved: null,
@@ -97,6 +102,11 @@ const addItem = item => cart => ({
   items: cart.items.concat([createItem(item, 1)])
 })
 
+const copyItem = item => cart => {
+  const idx = cart.items.findIndex(i => i.itemId === item.itemId)
+  return { ...cart, items: insertAfter(cart.items, idx, createItem(item, 1)) }
+}
+
 const remItem = itemId => cart => {
   const items = cart.items.reduce(
     (acc, i) => (i.itemId !== itemId ? [...acc, i] : acc),
@@ -117,4 +127,12 @@ const decQty = itemId => cart => {
     i.itemId !== itemId ? i : { ...i, qty: i.qty - 1 < 0 ? 0 : i.qty - 1 }
   )
   return { ...cart, items }
+}
+
+// Helpers - insert item into items array
+const insertAfter = (arr, index, newItem) => {
+  if (index >= arr.length) {
+    return arr.concat[newItem]
+  }
+  return [...arr.slice(0, index + 1), newItem, ...arr.slice(index + 1)]
 }

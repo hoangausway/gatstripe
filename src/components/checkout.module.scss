@@ -1,0 +1,9 @@
+@import "../style/theme.scss";
+.button {
+  width: 100%
+}
+
+.button_disable {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
