@@ -26,6 +26,7 @@ import { useDispatch } from 'react-redux'
 import { aDataFeed } from '../state/list-reducer'
 import { aCartLoad } from '../state/cart-reducer'
 import { aUserLoad } from '../state/user-reducer'
+import { aLocationsFeed } from '../state/locations-reducer'
 
 import Metadata from '../components/metadata'
 
@@ -37,6 +38,9 @@ const Index = ({ data }) => {
     const jsonExtras = data.products.edges[0].node.extras
 
     dispatch(aDataFeed({ jsonItems, jsonExtras }))
+
+    const locations = data.locations.edges[0].node.locations
+    dispatch(aLocationsFeed(locations))
 
     // load data from indexeddb
     dispatch(aCartLoad())
@@ -99,7 +103,7 @@ export const query = graphql`
           items
         }
       }
-    },
+    }
     locations: allLrLocationsJsonData {
       edges {
         node {

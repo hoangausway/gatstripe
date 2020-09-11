@@ -3,13 +3,13 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from '@reach/router'
 
 import Contact from './contact'
+import Location from './location'
 
 import {
   aCartIncQty,
   aCartDecQty,
   aCartRemItem,
-  aCartCopyItem,
-  aCartAddItem
+  aCartCopyItem
 } from '../state/cart-reducer'
 import style from './cart.module.scss'
 
@@ -20,6 +20,9 @@ const Cart = ({ location }) => {
   return (
     <div className={style.cart}>
       <Contact />
+      <div className={style.location}>
+        <Location />
+      </div>
       <section>
         {cart.items.map(i => (
           <Item key={i.itemId} item={i} />
@@ -46,10 +49,18 @@ const Item = ({ item }) => {
         <div>{`${item.qty}`}</div>
       </div>
       <div className={style.item_line2}>
-        <button onClick={e => dispatch(aCartRemItem(item.itemId))}>Remove</button>
+        <button onClick={e => dispatch(aCartRemItem(item.itemId))}>
+          Remove
+        </button>
         <button onClick={e => dispatch(aCartCopyItem(item))}>Copy</button>
-        <button onClick={e => dispatch(aCartDecQty(item.itemId))}> Qty - </button>
-        <button onClick={e => dispatch(aCartIncQty(item.itemId))}> Qty + </button>
+        <button onClick={e => dispatch(aCartDecQty(item.itemId))}>
+          {' '}
+          Qty -{' '}
+        </button>
+        <button onClick={e => dispatch(aCartIncQty(item.itemId))}>
+          {' '}
+          Qty +{' '}
+        </button>
       </div>
     </div>
   )

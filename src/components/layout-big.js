@@ -36,7 +36,7 @@ export const Header = () => {
         </div>
       </div>
       <div className={style.cartinfo}>
-        <div>Cart</div>
+        {/* <div>Cart</div> */}
         <div className={style.checkout_button}><Checkout /></div>
       </div>
     </div>

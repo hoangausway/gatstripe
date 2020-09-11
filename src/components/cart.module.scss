@@ -5,16 +5,15 @@
   overflow: scroll;
   padding: $pad;
 
-  > button {
-    margin: 0.2rem;
-    padding: 0.2rem;
-  }
-
   // items
   section {
     > div:nth-of-type(odd) {
       background-color:rgb(237, 248, 236);
     }
+  }
+
+  .location {
+    padding: 0.75rem 0;
   }
 }
 
