@@ -103,6 +103,7 @@ const reqVerify = user => ({
 // Helpers - CSS
 const clsLoading = loading => (loading ? cns(style.button, style.button_disable) : style.button)
 
+// Helpers - logics
 const startLoading = setIsLoading => chkout => {
   setIsLoading(true)
   return chkout
