@@ -24,7 +24,7 @@ const Cart = ({ location }) => {
         <Location />
       </div>
       <section>
-        {cart.items.map(i => (
+        {cart.map(i => (
           <Item key={i.itemId} item={i} />
         ))}
       </section>

@@ -18,12 +18,11 @@ const List = () => {
   const [cats, setCats] = React.useState([])
 
   React.useEffect(() => {
-    console.log('cart.items', cart.items)
     const cs = foundCats.map(c => {
       return [
         c[0],
         c[1].map(p => {
-          const foundInCart = cart.items.find(i => i.id === p.id)
+          const foundInCart = cart.find(i => i.id === p.id)
           return { ...p, inCart: !!foundInCart }
         })
       ]

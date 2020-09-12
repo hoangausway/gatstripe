@@ -34,29 +34,10 @@ export const aCartIncQty = itemId => dispatch =>
 export const aCartDecQty = itemId => dispatch =>
   updateCart(decQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
-export const aCartLoad = () => dispatch =>
-  load().then(cart => dispatch(aCartLoaded(cart)))
-
-// cart contents
-const CartStatus = {
-  CART_CREATED: 'created',
-  CART_CHARGED: 'charged',
-  CART_CHARGING: 'charging',
-  CART_CANCELLED: 'cancelled',
-  CART_REMOVED: 'removed'
-}
+export const aCartLoad = () => dispatch => load().then(cart => dispatch(aCartLoaded(cart)))
 
 // cart shape:
-export const cartInitialState = {
-  cartId: '',
-  user: { name: '', phone: '', email: '' },
-  location: { locId: '', address: '' },
-  items: [], // [..., {itemId, qty, extras, options, priceId, productId}]
-  dateCreated: null,
-  dateCharged: null,
-  dateRemoved: null,
-  status: CartStatus.CART_CREATED
-}
+export const cartInitialState = [] // [..., {itemId, qty, extras, options, priceId, productId}]
 
 // reducer
 export default (state = cartInitialState, { type, payload }) => {
@@ -74,14 +55,10 @@ export default (state = cartInitialState, { type, payload }) => {
 const load = () => getCart().then(setCart)
 
 // getCart:: () -> Promise.resolve(cart)
-const getCart = () =>
-  get('cart').then(
-    cart =>
-      cart || { ...cartInitialState, cartId: uuidv4(), dateCreated: Date.now() }
-  )
+const getCart = () => get('cart').then(cart => cart || cartInitialState)
 
 // setCart:: cart -> Promise.resolve(cart)
-const setCart = cart => set('cart', cart).then(() => Promise.resolve(cart))
+const setCart = cart => set('cart', cart).then(() => cart)
 
 // updateCartItems:: param -> f -> Promise.resolve(cart)
 // f:: param -> cart -> cart
@@ -97,36 +74,23 @@ const createItem = (item, qty) => {
 }
 
 // functions updating cart's items
-const addItem = item => cart => ({
-  ...cart,
-  items: cart.items.concat([createItem(item, 1)])
-})
+const addItem = item => cart => cart.concat([createItem(item, 1)])
 
 const copyItem = item => cart => {
-  const idx = cart.items.findIndex(i => i.itemId === item.itemId)
-  return { ...cart, items: insertAfter(cart.items, idx, createItem(item, 1)) }
+  const idx = cart.findIndex(i => i.itemId === item.itemId)
+  return insertAfter(cart, idx, createItem(item, 1))
 }
 
 const remItem = itemId => cart => {
-  const items = cart.items.reduce(
-    (acc, i) => (i.itemId !== itemId ? [...acc, i] : acc),
-    []
-  )
-  return { ...cart, items }
+  return cart.reduce((acc, i) => (i.itemId !== itemId ? [...acc, i] : acc), [])
 }
 
 const incQty = itemId => cart => {
-  const items = cart.items.map(i =>
-    i.itemId !== itemId ? i : { ...i, qty: i.qty + 1 }
-  )
-  return { ...cart, items }
+  return cart.map(i => (i.itemId !== itemId ? i : { ...i, qty: i.qty + 1 }))
 }
 
 const decQty = itemId => cart => {
-  const items = cart.items.map(i =>
-    i.itemId !== itemId ? i : { ...i, qty: i.qty - 1 < 0 ? 0 : i.qty - 1 }
-  )
-  return { ...cart, items }
+  return cart.map(i => (i.itemId !== itemId ? i : { ...i, qty: i.qty - 1 < 0 ? 0 : i.qty - 1 }))
 }
 
 // Helpers - insert item into items array

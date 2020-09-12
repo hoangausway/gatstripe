@@ -5,7 +5,6 @@ import Cart from './cart'
 import style from './verify-email-cart.module.scss'
 
 const VerifyEmailCart = props => {
-  console.log('location', props.location.href)
   return (
     <div className={style.layout}>
       <VerifyEmail />

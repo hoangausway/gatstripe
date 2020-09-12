@@ -9,7 +9,6 @@ import lrlogo from '../img/lr-icon.svg'
 import Checkout from './checkout'
 
 const LayoutSmall = props => {
-  console.log(window.location)
   return (
     <div>
       <Header />

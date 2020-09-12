@@ -1,69 +1,50 @@
 import React, { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
-import { useSelector } from 'react-redux'
-import cx from 'classnames'
+import { v4 as uuidv4 } from 'uuid'
+import { useSelector, useDispatch } from 'react-redux'
+import cns from 'classnames'
 import style from './checkout.module.scss'
-
-let stripePromise
-const getStripe = () => {
-  if (!stripePromise) {
-    stripePromise = loadStripe(process.env.GATSBY_STRIPE_PUBLISHABLE_KEY)
-  }
-  return stripePromise
-}
+import { aChkoutCreate, aChkoutUpdate } from '../state/checkout-reducer'
 
 /*
   3 factors for checkout process
-  - Who: name, phone, and a VALID email. Verify and confirm against server.
-  - Where: outlet. Available offline in app.
-  - What: item list. Available offline in app.
+  - Who: customer's name, phone, and a VALID email. Verify and confirm email against server.
+  - Where: outlet's location. Location list is available offline in app.
+  - What: selected items. Items list is available offline in app.
 */
 const Checkout = () => {
+  const dispatch = useDispatch()
+
   const cart = useSelector(state => state.cart)
   const user = useSelector(state => state.user)
+  const location = useSelector(state => state.location)
 
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
   const [total, setTotal] = useState(0)
 
-  // stripe purchase structure
-  const purchase = () => ({
-    mode: 'payment',
-    lineItems: cartLineItems(cart.items),
-    successUrl: `${window.location.origin}/success`,
-    cancelUrl: `${window.location.origin}/cancel`,
-    clientReferenceId: cart.cartId,
-    customerEmail: user.email
-  })
+  const handler = (user, location, cart) => e => {
+    e.preventDefault()
 
-  const handler = e => {
-    // check outlet
-
-    // check contact: verify-email against server
-    
-
-  }
-
-  const redirectToCheckout = async event => {
-    event.preventDefault()
-    setLoading(true)
-
-    const stripe = await getStripe()
-    await stripe.redirectToCheckout(purchase())
-
-    setLoading(false)
+    const chkout = createChkout(user, location, cart)
+    Promise.resolve(chkout)
+      .then(startLoading(setIsLoading))
+      .then(validateChkout)
+      .then(verifyEmail)
+      .then(stripeRedirect(dispatch))
+      .catch(reason => console.log(reason))
+      .finally(() => endLoading(setIsLoading))
   }
 
   React.useEffect(() => {
-    setTotal(calTotal(cart.items))
-  }, [cart.items])
+    setTotal(calTotal(cart))
+  }, [cart])
 
   return (
     <div
-      disabled={loading}
-      className={
-        loading ? cx(style.button, style.button_disable) : style.button
-      }
-      onClick={redirectToCheckout}
+      disabled={isLoading}
+      className={clsLoading(isLoading)}
+      onClick={handler(user, location, cart)}
     >
       {`Checkout $${total}`}
     </div>
@@ -85,24 +66,99 @@ const mergeByPriceId = items => {
 }
 
 const cartLineItems = items => {
-  const extraItems = items.reduce(
-    (acc, i) => acc.concat(i.extraItems || []),
-    []
-  )
+  const extraItems = items.reduce((acc, i) => acc.concat(i.extraItems || []), [])
 
   return mergeByPriceId(items).concat(mergeByPriceId(extraItems))
 }
 
-const calTotal = items => {
-  const extraItems = items.reduce(
-    (acc, i) => acc.concat(i.extraItems || []),
-    []
-  )
+const calTotal = cart => {
+  const extraItems = cart.reduce((acc, i) => acc.concat(i.extraItems || []), [])
 
-  const extrasTotal = extraItems.reduce(
-    (acc, i) => acc + i.chargePrice * i.qty,
-    0
-  )
-  const itemsTotal = items.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
-  return ((extrasTotal + itemsTotal) / 100).toFixed(2)
+  const extrasTotal = extraItems.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
+
+  const cartTotal = cart.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
+  return ((extrasTotal + cartTotal) / 100).toFixed(2)
+}
+
+// Helpers - API
+// verify:: chkout -> chkout or reject(reason)
+const verifyEmail = chkout => {
+  return window
+    .fetch(urlVerify, reqVerify(chkout.user))
+    .then(res => (res.status === 200 ? res.json() : Promise.reject(new Error('Could not verify!'))))
+    .then(json => (json.verified ? chkout : Promise.reject(new Error('User is not verified!'))))
+}
+const urlVerify = '/.netlify/functions/verify-email'
+const reqVerify = user => ({
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    Accept: 'application/json',
+    'Content-Type': 'application/json'
+  },
+  mode: 'cors',
+  method: 'POST',
+  body: JSON.stringify(user)
+})
+
+// Helpers - CSS
+const clsLoading = loading => (loading ? cns(style.button, style.button_disable) : style.button)
+
+const startLoading = setIsLoading => chkout => {
+  setIsLoading(true)
+  return chkout
+}
+const endLoading = setIsLoading => setIsLoading(false)
+
+const createChkout = (user, location, cart) => ({
+  chkoutId: uuidv4(),
+  user,
+  location,
+  cart, // [..., {itemId, qty, extras, options, priceId, productId}]
+  tsCreated: Date.now(), // timestamp
+  tsCharged: null,
+  tsCharging: null,
+  tsChargeFailed: null
+})
+
+const purchase = chkout => ({
+  mode: 'payment',
+  clientReferenceId: chkout.chkoutId,
+  customerEmail: chkout.user.email,
+  lineItems: cartLineItems(chkout.cart),
+  successUrl: `${window.location.origin}/success`,
+  cancelUrl: `${window.location.origin}/cancel`
+})
+
+const stripeRedirect = dispatch => chkout => {
+  dispatch(aChkoutCreate({ ...chkout, tsCharging: Date.now() }))
+
+  return loadStripe(process.env.GATSBY_STRIPE_PUBLISHABLE_KEY)
+    .then(stripe => stripe.redirectToCheckout(purchase(chkout)))
+    .then(result => {
+      if (result.error && result.error.message) {
+        console.log('result.error', chkout)
+        dispatch(aChkoutUpdate({ chkout, tsChargeFailed: Date.now() }))
+        return Promise.reject(result.error)
+      }
+      console.log('result.success', chkout)
+      dispatch(aChkoutUpdate({ chkout, tsCharged: Date.now() }))
+      return result
+    })
+}
+
+const validateContact = user => user.email.length * user.name.length * user.phone.length > 0
+const validateLocation = location => location.locId !== 'LOC_NONE'
+const validateCart = cart => cart.length > 0
+const validateChkout = chkout => {
+  if (!validateContact(chkout.user)) {
+    return Promise.reject(new Error('Contact fields should not be empty'))
+  }
+  if (!validateLocation(chkout.location)) {
+    return Promise.reject(new Error('An outlet location should be selected'))
+  }
+  if (!validateCart(chkout.cart)) {
+    return Promise.reject(new Error('Cart should not be empty'))
+  }
+
+  return Promise.resolve(chkout)
 }

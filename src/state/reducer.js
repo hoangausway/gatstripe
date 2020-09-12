@@ -4,12 +4,14 @@ import cart, { cartInitialState } from './cart-reducer'
 import list, { listInitialState } from './list-reducer'
 import locations, { locationsInitialState } from './locations-reducer'
 import location, { locationInitialState } from './location-reducer'
+import chkout, { chkoutInitialState } from './checkout-reducer'
 
 export const initialAppState = {
+  chkout: chkoutInitialState,
   location: locationInitialState,
   user: userInitialState,
   cart: cartInitialState,
   list: listInitialState,
   locations: locationsInitialState
 }
-export default combineReducers({ location, user, cart, list, locations })
+export default combineReducers({ chkout, location, user, cart, list, locations })

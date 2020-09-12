@@ -8,14 +8,12 @@ export const aLocationsFeed = data => ({
   payload: data
 })
 
-export const locationsInitialState = {
-  locations: []
-}
+export const locationsInitialState = []
 
 export default (state = locationsInitialState, { type, payload }) => {
   switch (type) {
     case LocationsActions.LOCATIONS_FEED:
-      return { ...state, locations: [].concat(JSON.parse(payload)) }
+      return [].concat(JSON.parse(payload))
 
     default:
       return state

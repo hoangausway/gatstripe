@@ -18,12 +18,6 @@ const aUserUpdated = cart => ({
 })
 
 // asynchronous action creators
-export const aUserVerifyEmail = user => dispatch =>
-  verify(user).then(user => dispatch(aUserUpdated(user)))
-
-export const aUserConfirmEmail = token => dispatch =>
-  confirm(token).then(user => dispatch(aUserUpdated(user)))
-
 export const aUserChangeEmail = email => dispatch =>
   updateUserProp(changeEmail, email).then(user => dispatch(aUserUpdated(user)))
 
@@ -81,26 +75,36 @@ const changeEmail = email => user => ({ ...user, email })
 const changeName = name => user => ({ ...user, name })
 const changePhone = phone => user => ({ ...user, phone })
 
+
+/*
+  verify and confirm are just utilities which won't change user state
+  TBD: move these functions to appropriate places
+*/
+// export const aUserVerifyEmail = user => dispatch =>
+//   verify(user).then(user => dispatch(aUserUpdated(user)))
+
+// export const aUserConfirmEmail = token => dispatch =>
+//   confirm(token).then(user => dispatch(aUserUpdated(user)))
+
 // Update user returning from server
-const updateUser = ({ name, phone, email, verified }) => {
-  return setUser({ name, phone, email, verified, dateUpdated: Date.now() })
-}
+// const updateUser = ({ name, phone, email, verified }) => {
+//   return setUser({ name, phone, email, verified, dateUpdated: Date.now() })
+// }
 
 // verify:: a -> Promise.resolve(a)
-const verify = user => {
-  return window
-    .fetch(urlVerify, reqVerify(user))
-    .then(res => {
-      if (res.status === 200) {
-        return res.json()
-      }
-      return Promise.reject(res.body)
-    }) // expected format {email, name, phone, verified}
-    .then(updateUser)
-    .catch(err => {
-      console.log(err)
-      return load() // error: just return current user array
-    })
+export const verify = user => {
+  return (
+    window
+      .fetch(urlVerify, reqVerify(user))
+      .then(res => {
+        return res.status === 200 ? res.json() : Promise.reject(res.body)
+      }) // expected format {email, name, phone, verified}
+      // .then(updateUser)
+      .catch(err => {
+        console.log(err)
+        return load() // error: just return current user array
+      })
+  )
 }
 const urlVerify = '/.netlify/functions/verify-email'
 const reqVerify = user => ({
@@ -115,20 +119,19 @@ const reqVerify = user => ({
 })
 
 // confirm:: a -> Promise.resolve(b)
-const confirm = token => {
-  return window
-    .fetch(urlConfirm, reqConfirm(token))
-    .then(res => {
-      if (res.status === 200) {
-        return res.json()
-      }
-      return Promise.reject(res.body)
-    }) // expected format {email, name, phone, verified}
-    .then(updateUser)
-    .catch(err => {
-      console.log(err)
-      return load()
-    })
+export const confirm = token => {
+  return (
+    window
+      .fetch(urlConfirm, reqConfirm(token))
+      .then(res => {
+        return res.status === 200 ? res.json() : Promise.reject(res.body)
+      }) // expected format {email, name, phone, verified}
+      // .then(updateUser)
+      .catch(err => {
+        console.log(err)
+        return load()
+      })
+  )
 }
 const urlConfirm = '/.netlify/functions/confirm-email'
 const reqConfirm = token => ({

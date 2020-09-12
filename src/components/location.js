@@ -11,7 +11,7 @@ import {
 const Location = () => {
   const dispatch = useDispatch()
   const location = useSelector(state => state.location)
-  const { locations } = useSelector(state => state.locations)
+  const locations = useSelector(state => state.locations)
   const options = [toOption(locationInitialState)].concat(
     locations.map(toOption)
   )
@@ -43,10 +43,12 @@ const toLocation = option => ({ locId: option.value, address: option.label })
 const customStyles = {
   option: (provided, state) => ({
     ...provided,
+    fontSize: '0.75rem',
     fontFamily: 'Helvetica, Arial, sans-serif'
   }),
   control: (provided, state) => ({
     ...provided,
+    fontSize: '0.75rem',
     fontFamily: 'Helvetica, Arial, sans-serif'
   })
 }

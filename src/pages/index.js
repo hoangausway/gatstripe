@@ -26,6 +26,7 @@ import { useDispatch } from 'react-redux'
 import { aDataFeed } from '../state/list-reducer'
 import { aCartLoad } from '../state/cart-reducer'
 import { aUserLoad } from '../state/user-reducer'
+import { aLocationLoad } from '../state/location-reducer'
 import { aLocationsFeed } from '../state/locations-reducer'
 
 import Metadata from '../components/metadata'
@@ -45,6 +46,7 @@ const Index = ({ data }) => {
     // load data from indexeddb
     dispatch(aCartLoad())
     dispatch(aUserLoad())
+    dispatch(aLocationLoad())
   }, [])
 
   return (

@@ -2,7 +2,8 @@ import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from '@reach/router'
 
-import { aUserVerifyEmail } from '../state/user-reducer'
+// TBD: wont be used aUserVerifyEmail
+// import { aUserVerifyEmail } from '../state/user-reducer'
 import style from './verify-email.module.scss'
 import Notifications, { notify } from 'react-notify-toast'
 
@@ -21,18 +22,18 @@ const VerifyEmail = props => {
   const user = useSelector(state => state.user)
   const [verifying, setVerifying] = React.useState(verifyingStatus.VERIFYING)
 
-  React.useEffect(() => {
-    console.log('useEffect', user)
-    console.log('token', token)
-    if (!user.verified && token) dispatch(aUserVerifyEmail(token))
-  }, [])
+  // React.useEffect(() => {
+  //   console.log('useEffect', user)
+  //   console.log('token', token)
+  //   if (!user.verified && token) dispatch(aUserVerifyEmail(token))
+  // }, [])
 
-  React.useEffect(() => {
-    if (user.verified) {
-      setVerifying(verifyingStatus.VERIFIED)
-      notify.show(`user.verified: ${user.verified}`)
-    }
-  }, [user.verified])
+  // React.useEffect(() => {
+  //   if (user.verified) {
+  //     setVerifying(verifyingStatus.VERIFIED)
+  //     notify.show(`user.verified: ${user.verified}`)
+  //   }
+  // }, [user.verified])
 
   return (
     <div>
