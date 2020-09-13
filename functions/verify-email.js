@@ -6,8 +6,7 @@ const { sendLink } = require('./email.template')
 // Tokenize
 const jwt = require('jwt-simple')
 const createToken = user => jwt.encode(user, process.env.TOKEN_SALT)
-const createLink = token =>
-  `${process.env.CLIENT_ORIGIN}/confirm-email/${token}`
+const createLink = token => `${process.env.CLIENT_ORIGIN}/confirm-email/${token}`
 
 // Fauna API
 const faunadb = require('faunadb')
@@ -19,7 +18,7 @@ const client = new faunadb.Client({
 // Helpers - query construction
 const onehr = 60 * 60 * 1000
 const next24hrs = () => Date.now() + 24 * onehr
-const isExpiredSoon = expired => expired < Date.now() - onehr
+const isExpiredSoon = expired => !expired || expired < Date.now() - onehr
 
 const qSearchValue = index => value => {
   const query = q.Let(
@@ -29,11 +28,12 @@ const qSearchValue = index => value => {
     q.If(
       q.Exists(q.Var('ref')),
       {
-        type: 'Found',
+        found: 'yes',
         doc: q.Get(q.Var('ref'))
       },
       {
-        type: 'NotFound',
+        found: 'no',
+        doc: null,
         message: value
       }
     )
@@ -45,15 +45,15 @@ const qNewUser = dataUser => {
   return q.Create(q.Collection('users'), { data: dataUser })
 }
 
-const qUpdateNamePhone = ({ name, phone }, userDoc) => {
-  return q.Update(userDoc.ref, {
-    data: { ...userDoc.data, name, phone }
-  })
-}
-
 const qUpdateNamePhoneToken = ({ name, phone, token }, userDoc) => {
   return q.Update(userDoc.ref, {
     data: { ...userDoc.data, name, phone, token, expired: next24hrs() }
+  })
+}
+
+const qUpdateNamePhoneTokenExpired = ({ name, phone, token, expired }, userDoc) => {
+  return q.Update(userDoc.ref, {
+    data: { ...userDoc.data, name, phone, token, expired }
   })
 }
 
@@ -107,28 +107,33 @@ const notFoundUser = user => {
     .catch(jsonError)
 }
 
-const foundVerifiedOrNotExpiredSoonUser = (user, userDoc) => {
+const foundUnverified = (user, userDoc) => {
   const { name, phone } = user
-  if (name !== userDoc.name || phone !== userDoc.phone) {
+  const { token, expired } = userDoc.data
+  const expiredSoon = isExpiredSoon(expired)
+  const newToken = expiredSoon ? createToken(user) : token
+
+  return client
+    .query(qUpdateNamePhoneToken({ name, phone, token: newToken }, userDoc))
+    .then(doc => {
+      if (expiredSoon) {
+        sendLink(doc.data.email)(createLink(doc.data.token))
+      }
+    })
+    .then(_ => jsonSuccess({ ...user, verified: false }))
+    .catch(jsonError)
+}
+
+const foundVerified = (user, userDoc) => {
+  const { name, phone } = user
+  const { token } = userDoc.data
+  if (name !== userDoc.name || phone !== userDoc.phone || token) {
     return client
-      .query(qUpdateNamePhone({ name, phone }, userDoc))
+      .query(qUpdateNamePhoneTokenExpired({ name, phone, token: null, expired: null }, userDoc))
       .then(_ => jsonSuccess({ ...user, verified: userDoc.data.verified }))
       .catch(jsonError)
   }
-  return Promise.resolve(
-    jsonSuccess({ ...user, verified: userDoc.data.verified })
-  )
-}
-
-const foundUnverifiedAndExpiredSoonUser = (user, userDoc) => {
-  const { name, phone } = user
-  const token = createToken(user)
-
-  return client
-    .query(qUpdateNamePhoneToken({ name, phone, token }, userDoc))
-    .then(doc => sendLink(doc.data.email)(createLink(doc.data.token)))
-    .then(_ => jsonSuccess({ ...user, verified: false }))
-    .catch(jsonError)
+  return Promise.resolve(jsonSuccess({ ...user, verified: userDoc.data.verified }))
 }
 
 /*
@@ -152,38 +157,21 @@ const foundUnverifiedAndExpiredSoonUser = (user, userDoc) => {
 */
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
-    return Promise.resolve({ statusCode: 500, body: 'Invalid request' })
+    return jsonError(Error('Invalid request'))
   }
 
   const body = JSON.parse(event.body)
-  console.log('body', body)
   if (!validateBody(body)) {
-    return Promise.resolve({ statusCode: 500, body: 'Invalid data' })
+    return jsonError(Error('Invalid data'))
   }
 
   const user = { email: body.email, name: body.name, phone: body.phone }
 
   return client
     .query(qSearchValue('users-email')(user.email))
-    .then(ret => {
-      if (ret.type !== 'Found') {
-        return notFoundUser(user)
-      }
-
-      const userDoc = ret.doc
-      const { verified, expired } = userDoc.data
-      const expiredSoon = isExpiredSoon(expired)
-
-      // found: unverified and expired soon
-      if (!verified && expiredSoon) {
-        return foundUnverifiedAndExpiredSoonUser(user, userDoc)
-      }
-
-      // found: verified or unverified but not expired soon
-      return foundVerifiedOrNotExpiredSoonUser(user, userDoc)
+    .then(({ found, doc }) => {
+      if (found === 'no') return notFoundUser(user)
+      return doc.data.verified ? foundVerified(user, doc) : foundUnverified(user, doc)
     })
-    .catch(err => {
-      console.log(err)
-      return { statusCode: 400, body: JSON.stringify(err) }
-    })
+    .catch(jsonError)
 }
