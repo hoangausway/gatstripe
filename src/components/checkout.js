@@ -27,7 +27,7 @@ const Checkout = () => {
     e.preventDefault()
 
     const chkout = createChkout(user, location, cart)
-    Promise.resolve(chkout)
+    resolve(chkout)
       .then(startLoading(setIsLoading))
       .then(validateChkout)
       .then(verifyEmail)
@@ -85,8 +85,8 @@ const calTotal = cart => {
 const verifyEmail = chkout => {
   return window
     .fetch(urlVerify, reqVerify(chkout.user))
-    .then(res => (res.status === 200 ? res.json() : Promise.reject(new Error('Could not verify!'))))
-    .then(json => (json.verified ? chkout : Promise.reject(new Error('User is not verified!'))))
+    .then(res => (res.status === 200 ? res.json() : reject('Could not verify!')))
+    .then(json => (json.verified ? chkout : reject('User is not verified!')))
 }
 const urlVerify = '/.netlify/functions/verify-email'
 const reqVerify = user => ({
@@ -136,30 +136,32 @@ const stripeRedirect = dispatch => chkout => {
   return loadStripe(process.env.GATSBY_STRIPE_PUBLISHABLE_KEY)
     .then(stripe => stripe.redirectToCheckout(purchase(chkout)))
     .then(result => {
-      if (result.error && result.error.message) {
-        console.log('result.error', chkout)
-        dispatch(aChkoutUpdate({ chkout, tsChargeFailed: Date.now() }))
-        return Promise.reject(result.error)
+      if (!result.error) {
+        dispatch(aChkoutUpdate({ chkout, tsCharged: Date.now() }))
+        return result
       }
-      console.log('result.success', chkout)
-      dispatch(aChkoutUpdate({ chkout, tsCharged: Date.now() }))
-      return result
+      dispatch(aChkoutUpdate({ chkout, tsChargeFailed: Date.now() }))
+      return reject(result.error.message || 'Could not redirect to checkout')
     })
 }
 
 const validateContact = user => user.email.length * user.name.length * user.phone.length > 0
 const validateLocation = location => location.locId !== 'LOC_NONE'
 const validateCart = cart => cart.length > 0
+// validateChkout:: chkout -> Promise
 const validateChkout = chkout => {
   if (!validateContact(chkout.user)) {
-    return Promise.reject(new Error('Contact fields should not be empty'))
+    return reject('Contact should not be empty')
   }
   if (!validateLocation(chkout.location)) {
-    return Promise.reject(new Error('An outlet location should be selected'))
+    return reject('An outlet location should be selected')
   }
   if (!validateCart(chkout.cart)) {
-    return Promise.reject(new Error('Cart should not be empty'))
+    return reject('Cart should not be empty')
   }
 
-  return Promise.resolve(chkout)
+  return resolve(chkout)
 }
+
+const reject = msg => Promise.reject(new Error(msg))
+const resolve = res => Promise.resolve(res)

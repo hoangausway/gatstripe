@@ -86,6 +86,7 @@ const validateBody = body => {
     body.phone !== ''
   )
 }
+
 // Helpers - business logic
 const dataUser = user => ({
   ...user,
