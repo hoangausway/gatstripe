@@ -43,9 +43,9 @@ export default (state = locationInitialState, { type, payload }) => {
 
 // Helpers
 const getLocation = () => {
-  return get('location').then(l => l || { ...locationInitialState, tsUpdated: Date.now() })
+  return get('location').then(l => l || locationInitialState)
 }
 // setLocation:: location -> Promise.resolve(location)
 const setLocation = location => set('location', location).then(() => Promise.resolve(location))
 
-const update = location => setLocation({ ...location, tsUpdated: Date.now() })
+const update = location => setLocation(location)

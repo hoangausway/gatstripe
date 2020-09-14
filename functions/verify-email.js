@@ -101,12 +101,13 @@ const notFoundUser = user => {
   return client
     .query(qNewUser(dataUser(user)))
     .then(doc => {
-      return sendLink(doc.data.email)(createLink(doc.data.token))
+      return sendLink(doc.data.email, createLink(doc.data.token))
     })
     .then(_ => jsonSuccess({ ...user, verified: false }))
     .catch(jsonError)
 }
 
+// foundUnverified:: user -> userDoc -> json_response
 const foundUnverified = (user, userDoc) => {
   const { name, phone } = user
   const { token, expired } = userDoc.data
@@ -124,6 +125,7 @@ const foundUnverified = (user, userDoc) => {
     .catch(jsonError)
 }
 
+// foundVerified:: user -> userDoc -> json_response
 const foundVerified = (user, userDoc) => {
   const { name, phone } = user
   const { token } = userDoc.data

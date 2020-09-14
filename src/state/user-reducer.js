@@ -27,16 +27,13 @@ export const aUserChangeName = name => dispatch =>
 export const aUserChangePhone = phone => dispatch =>
   updateUserProp(changePhone, phone).then(user => dispatch(aUserUpdated(user)))
 
-export const aUserLoad = () => dispatch =>
-  load().then(user => dispatch(aUserLoaded(user)))
+export const aUserLoad = () => dispatch => load().then(user => dispatch(aUserLoaded(user)))
 
 // cart shape:
 export const userInitialState = {
   name: '',
   phone: '',
-  email: null,
-  verified: false,
-  dateUpdated: null
+  email: null
 }
 
 // reducer
@@ -56,13 +53,11 @@ const load = () => getUser().then(setUser)
 
 // getUser:: () -> Promise.resolve(user)
 const getUser = () => {
-  return get('user').then(
-    user => user || { ...userInitialState, dateUpdated: Date.now() }
-  )
+  return get('user').then(user => user || userInitialState)
 }
 
 // setUser:: user -> Promise.resolve(user)
-const setUser = user => set('user', user).then(() => Promise.resolve(user))
+const setUser = user => set('user', user).then(() => user)
 
 // updateUserProp:: f -> prop -> Promise.resolve(user)
 // f:: param -> user -> user
@@ -75,48 +70,10 @@ const changeEmail = email => user => ({ ...user, email })
 const changeName = name => user => ({ ...user, name })
 const changePhone = phone => user => ({ ...user, phone })
 
-
 /*
   verify and confirm are just utilities which won't change user state
   TBD: move these functions to appropriate places
 */
-// export const aUserVerifyEmail = user => dispatch =>
-//   verify(user).then(user => dispatch(aUserUpdated(user)))
-
-// export const aUserConfirmEmail = token => dispatch =>
-//   confirm(token).then(user => dispatch(aUserUpdated(user)))
-
-// Update user returning from server
-// const updateUser = ({ name, phone, email, verified }) => {
-//   return setUser({ name, phone, email, verified, dateUpdated: Date.now() })
-// }
-
-// verify:: a -> Promise.resolve(a)
-export const verify = user => {
-  return (
-    window
-      .fetch(urlVerify, reqVerify(user))
-      .then(res => {
-        return res.status === 200 ? res.json() : Promise.reject(res.body)
-      }) // expected format {email, name, phone, verified}
-      // .then(updateUser)
-      .catch(err => {
-        console.log(err)
-        return load() // error: just return current user array
-      })
-  )
-}
-const urlVerify = '/.netlify/functions/verify-email'
-const reqVerify = user => ({
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-    Accept: 'application/json',
-    'Content-Type': 'application/json'
-  },
-  mode: 'cors',
-  method: 'POST',
-  body: JSON.stringify(user)
-})
 
 // confirm:: a -> Promise.resolve(b)
 export const confirm = token => {

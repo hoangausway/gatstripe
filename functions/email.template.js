@@ -4,7 +4,9 @@ require('dotenv').config({
 const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
-const sendLink = email => link => {
+const createLink = token => `${process.env.CLIENT_ORIGIN}/confirm-email/${token}`
+
+const sendLink = (email, link) => {
   const msg = {
     to: email,
     from: process.env.FROM_EMAIL_ADDRESS,
@@ -15,4 +17,4 @@ const sendLink = email => link => {
   return sgMail.send(msg).then(() => {}, console.log)
 }
 
-module.exports = { sendLink }
+module.exports = { createLink, sendLink }

@@ -12,46 +12,17 @@ import { aChkoutCreate, aChkoutUpdate } from '../state/checkout-reducer'
   - Where: outlet's location. Location list is available offline in app.
   - What: selected items. Items list is available offline in app.
 */
-const Checkout = () => {
-  const dispatch = useDispatch()
-
-  const cart = useSelector(state => state.cart)
-  const user = useSelector(state => state.user)
-  const location = useSelector(state => state.location)
-
-  const [isLoading, setIsLoading] = useState(false)
-
-  const [total, setTotal] = useState(0)
-
-  const handler = (user, location, cart) => e => {
-    e.preventDefault()
-
-    const chkout = createChkout(user, location, cart)
-    resolve(chkout)
-      .then(startLoading(setIsLoading))
-      .then(validateChkout)
-      .then(verifyEmail)
-      .then(stripeRedirect(dispatch))
-      .catch(reason => console.log(reason))
-      .finally(() => endLoading(setIsLoading))
-  }
-
-  React.useEffect(() => {
-    setTotal(calTotal(cart))
-  }, [cart])
-
-  return (
-    <div
-      disabled={isLoading}
-      className={clsLoading(isLoading)}
-      onClick={handler(user, location, cart)}
-    >
-      {`Checkout $${total}`}
-    </div>
-  )
+const Reasons = {
+  SHOULD_CONFIRM_EMAIL:
+    'Your email is first time use with our system. Please check your email and follow instructions for confirming.',
+  ERROR_INVALID_REQUEST: 'Invalid request',
+  ERROR_INVALID_DATA: 'Invalid data',
+  ERROR_INVALID_USER: 'Invalid user',
+  ERROR_INVALID_LOCATION: 'Invalid location',
+  ERROR_INVALID_CART: "Invalid cart's contents",
+  ERROR_EMAIL_VERIFY: 'Could not verify email',
+  ERROR_USER_UPDATE: 'Could not update data'
 }
-
-export default Checkout
 
 // Helpers
 const mergeByPriceId = items => {
@@ -66,7 +37,10 @@ const mergeByPriceId = items => {
 }
 
 const cartLineItems = items => {
-  const extraItems = items.reduce((acc, i) => acc.concat(i.extraItems || []), [])
+  const extraItems = items.reduce(
+    (acc, i) => acc.concat(i.extraItems || []),
+    []
+  )
 
   return mergeByPriceId(items).concat(mergeByPriceId(extraItems))
 }
@@ -74,22 +48,30 @@ const cartLineItems = items => {
 const calTotal = cart => {
   const extraItems = cart.reduce((acc, i) => acc.concat(i.extraItems || []), [])
 
-  const extrasTotal = extraItems.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
+  const extrasTotal = extraItems.reduce(
+    (acc, i) => acc + i.chargePrice * i.qty,
+    0
+  )
 
   const cartTotal = cart.reduce((acc, i) => acc + i.chargePrice * i.qty, 0)
   return ((extrasTotal + cartTotal) / 100).toFixed(2)
 }
 
 // Helpers - API
-// verify:: chkout -> chkout or reject(reason)
-const verifyEmail = chkout => {
+// purchaseIntent:: chkout -> chkout or reject(reason)
+const purchaseIntent = chkout => {
   return window
-    .fetch(urlVerify, reqVerify(chkout.user))
-    .then(res => (res.status === 200 ? res.json() : reject('Could not verify!')))
-    .then(json => (json.verified ? chkout : reject('User is not verified!')))
+    .fetch(urlVerify, reqVerify(chkout))
+    .then(res =>
+      res.status === 200 ? res.json() : reject(new ErrorRequest(res.statusText))
+    )
+    .then(json => {
+      const isReady = json.chkoutId && json.chkoutId === chkout.chkoutId
+      return isReady ? chkout : reject(new ErrorEmail(json.message))
+    })
 }
-const urlVerify = '/.netlify/functions/verify-email'
-const reqVerify = user => ({
+const urlVerify = '/.netlify/functions/purchase-intent'
+const reqVerify = chkout => ({
   headers: {
     'Access-Control-Allow-Origin': '*',
     Accept: 'application/json',
@@ -97,11 +79,12 @@ const reqVerify = user => ({
   },
   mode: 'cors',
   method: 'POST',
-  body: JSON.stringify(user)
+  body: JSON.stringify(chkout)
 })
 
 // Helpers - CSS
-const clsLoading = loading => (loading ? cns(style.button, style.button_disable) : style.button)
+const clsLoading = loading =>
+  loading ? cns(style.button, style.button_disable) : style.button
 
 // Helpers - logics
 const startLoading = setIsLoading => chkout => {
@@ -145,23 +128,67 @@ const stripeRedirect = dispatch => chkout => {
     })
 }
 
-const validateContact = user => user.email.length * user.name.length * user.phone.length > 0
+const validateContact = user =>
+  user.email.length * user.name.length * user.phone.length > 0
 const validateLocation = location => location.locId !== 'LOC_NONE'
 const validateCart = cart => cart.length > 0
 // validateChkout:: chkout -> Promise
 const validateChkout = chkout => {
   if (!validateContact(chkout.user)) {
-    return reject('Contact should not be empty')
+    return reject(Reasons.ERROR_INVALID_USER)
   }
   if (!validateLocation(chkout.location)) {
-    return reject('An outlet location should be selected')
+    return reject(Reasons.ERROR_INVALID_LOCATION)
   }
   if (!validateCart(chkout.cart)) {
-    return reject('Cart should not be empty')
+    return reject(Reasons.ERROR_INVALID_CART)
   }
 
   return resolve(chkout)
 }
 
-const reject = msg => Promise.reject(new Error(msg))
+class ErrorEmail extends Error {}
+class ErrorRequest extends Error {}
+const reject = err => Promise.reject(err)
 const resolve = res => Promise.resolve(res)
+
+const Checkout = () => {
+  const dispatch = useDispatch()
+
+  const cart = useSelector(state => state.cart)
+  const user = useSelector(state => state.user)
+  const location = useSelector(state => state.location)
+
+  const [isLoading, setIsLoading] = useState(false)
+
+  const [total, setTotal] = useState(0)
+
+  const handler = (user, location, cart) => e => {
+    e.preventDefault()
+
+    const chkout = createChkout(user, location, cart)
+    resolve(chkout)
+      .then(startLoading(setIsLoading)) // chkout -> chkout
+      .then(validateChkout) // chkout -> chkout
+      .then(purchaseIntent) // chkout -> chkout
+      .then(stripeRedirect(dispatch))
+      .catch(err => console.log(err.name))
+      .finally(() => endLoading(setIsLoading))
+  }
+
+  React.useEffect(() => {
+    setTotal(calTotal(cart))
+  }, [cart])
+
+  return (
+    <div
+      disabled={isLoading}
+      className={clsLoading(isLoading)}
+      onClick={handler(user, location, cart)}
+    >
+      {`Checkout $${total}`}
+    </div>
+  )
+}
+
+export default Checkout
