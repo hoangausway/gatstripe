@@ -18,6 +18,7 @@ require('dotenv').config({
 const { createLink, sendLink } = require('./email.template')
 const { createToken } = require('./token')
 const { q, fauna } = require('./fauna')
+const { jsonError, jsonSuccess, reject, resolve } = require('./utils')
 
 class ErrorEmail extends Error {}
 class ErrorRequest extends Error {}
@@ -74,36 +75,23 @@ const createUserData = user => ({
   expired: next24hrs()
 })
 
+// don't blindly copy all fields from client's chkout object
+// use only needed fields of chkout object: {chkoutId, user, location, cart}
 const createChkoutData = chkout => ({
-  ...chkout,
-  tsUpdated: Date.now()
+  chkoutId: chkout.chkoutId,
+  user: chkout.user,
+  location: chkout.location,
+  cart: chkout.cart,
+  tsUpdated: Date.now(),
+  tsCharged: null
 })
 
-// Helpers - json response construction
-const jsonSuccess = data => {
-  console.log('jsonSuccess', data)
-  return {
-    statusCode: 200,
-    body: JSON.stringify(data)
-  }
-}
-
-const jsonError = message => {
-  console.log('jsonError', message)
-  return {
-    statusCode: 500,
-    body: message
-  }
-}
-
 // Helpers - logics
-const reject = err => Promise.reject(err)
-
 const errorHandle = err => {
   if (err instanceof ErrorEmail) {
     return jsonSuccess({ chkoutId: null, message: err.message })
   }
-  return jsonError(err.message)
+  return jsonError(500, err.message)
 }
 
 const newChkout = chkout => {
@@ -146,14 +134,7 @@ const validateUser = body => {
 
 const isValidUser = user => {
   const { email, name, phone } = user
-  return (
-    email &&
-    email.length > 0 &&
-    name &&
-    name.length > 0 &&
-    phone &&
-    phone.length > 0
-  )
+  return email && name && phone && email.length * name.length * phone.length > 0
 }
 
 const validateMethod = event => {
@@ -208,7 +189,7 @@ const foundVerified = ({ chkout, doc }) => {
 
 // lambda function
 exports.handler = async (event, context) => {
-  return Promise.resolve(event)
+  return resolve(event)
     .then(validateMethod) // event -> body
     .then(validateUser) // body -> chkout
     .then(searchUserEmail) // chkout -> {chkout, found, doc}

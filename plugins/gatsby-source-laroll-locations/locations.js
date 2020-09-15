@@ -9,7 +9,8 @@ module.exports = {
       state: 'VIC',
       postcode: '3029',
       country: 'Australia',
-      phone: '+61 434 917 195'
+      phone: '+61 434 917 195',
+      email: 'hoang21@gmail.com'
     },
     {
       locId: 'LR_LAVERTON',
@@ -20,7 +21,8 @@ module.exports = {
       state: 'VIC',
       postcode: '3026',
       country: 'Australia',
-      phone: '+61 468 460 141'
+      phone: '+61 468 460 141',
+      email: 'hoang21@gmail.com'
     },
     {
       locId: 'LR_DERRIMUT',
@@ -31,7 +33,8 @@ module.exports = {
       state: 'VIC',
       postcode: '3030',
       country: 'Australia',
-      phone: '+61 468 445 133'
+      phone: '+61 468 445 133',
+      email: 'hoang21@gmail.com'
     }
   ]
 }

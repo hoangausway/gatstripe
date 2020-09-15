@@ -12,17 +12,6 @@ import { aChkoutCreate, aChkoutUpdate } from '../state/checkout-reducer'
   - Where: outlet's location. Location list is available offline in app.
   - What: selected items. Items list is available offline in app.
 */
-const Reasons = {
-  SHOULD_CONFIRM_EMAIL:
-    'Your email is first time use with our system. Please check your email and follow instructions for confirming.',
-  ERROR_INVALID_REQUEST: 'Invalid request',
-  ERROR_INVALID_DATA: 'Invalid data',
-  ERROR_INVALID_USER: 'Invalid user',
-  ERROR_INVALID_LOCATION: 'Invalid location',
-  ERROR_INVALID_CART: "Invalid cart's contents",
-  ERROR_EMAIL_VERIFY: 'Could not verify email',
-  ERROR_USER_UPDATE: 'Could not update data'
-}
 
 // Helpers
 const mergeByPriceId = items => {
@@ -37,12 +26,13 @@ const mergeByPriceId = items => {
 }
 
 const cartLineItems = items => {
-  const extraItems = items.reduce(
+  const filteredZeroQty = items.filter(i => i.qty > 0)
+  const extraItems = filteredZeroQty.reduce(
     (acc, i) => acc.concat(i.extraItems || []),
     []
   )
 
-  return mergeByPriceId(items).concat(mergeByPriceId(extraItems))
+  return mergeByPriceId(filteredZeroQty).concat(mergeByPriceId(extraItems))
 }
 
 const calTotal = cart => {

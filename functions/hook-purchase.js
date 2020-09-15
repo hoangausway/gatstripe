@@ -1,68 +1,135 @@
+/*
+  - check the webhook to make sure it’s valid
+  - handle checkout.session.completed
+*/
+
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const { q, fauna } = require('./fauna')
 const sgMail = require('@sendgrid/mail')
+const { jsonError, jsonSuccess, reject, log } = require('./utils')
+
+class ErrorUnexpectedEventType extends Error {}
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 exports.handler = async ({ body, headers }) => {
-  try {
-    // check the webhook to make sure it’s valid
-    const event = await stripe.webhooks.constructEvent(
+  return Promise.resolve(
+    stripe.webhooks.constructEvent(
       body,
       headers['stripe-signature'],
       process.env.STRIPE_WEBHOOK_SECRET
     )
-
-    switch (event.type) {
-      case 'charge.succeeded':
-        handleChargeSucceeded(event)
-        break
-      case 'checkout.session.completed':
-        handleCheckoutSessionCompleted(event)
-        break
-      default:
-        // Unexpected event type
-        return { statusCode: 400 }
-    }
-
-    return { statusCode: 200, body: JSON.stringify({ received: true }) }
-  } catch (err) {
-    console.log(`Stripe webhook failed with ${err}`)
-
-    return {
-      statusCode: 400,
-      body: `Webhook Error: ${err.message}`
-    }
-  }
-}
-
-const handleChargeSucceeded = event => {
-  console.log('handleChargeSucceeded', event)
-
-  const dataObj = event.data.object
-  const chargeSucceeded = {
-    amount: (dataObj.amount / 100).toFixed(2),
-    created: dataObj.created,
-    customer: dataObj.customer,
-    description: dataObj.description,
-    receipt_url: dataObj.receipt_url
-  }
-
-  // Send and email to our fulfillment provider using Sendgrid.
-  const msg = {
-    to: process.env.FULFILLMENT_EMAIL_ADDRESS,
-    from: process.env.FROM_EMAIL_ADDRESS,
-    subject: `New purchase charged $${chargeSucceeded.amount}`,
-    text: emailText(chargeSucceeded)
-  }
-  sgMail.send(msg)
+  )
+    .then(handleEvent) // event -> {received}
+    .then(jsonSuccess) // {received} -> {status, body}
+    .catch(handleError) // err -> {status, body}
 }
 
 // Helpers
-const handleCheckoutSessionCompleted = event => {
-  console.log('handleCheckoutSessionCompleted', event)
+const handleError = err => {
+  console.log('handleError', err.message)
+  if (err instanceof ErrorUnexpectedEventType) {
+    return jsonError(400, 'Unexpected event type')
+  }
+  // We won't return error: return jsonError(400, 'Webhook Error')
+  // Error here should be our internal error. Just return {received: true} to Stripe
+  return jsonSuccess({ received: true })
 }
 
-// To be return text from a mail template with content filledup with chargeSucceeded data
-const emailText = chargeSucceeded => JSON.stringify(chargeSucceeded)
+// event -> {received}
+const handleEvent = event => {
+  if (event.type === 'checkout.session.completed') {
+    return handleCheckoutSessionCompleted(event)
+  }
+  return reject(new ErrorUnexpectedEventType('Not handled'))
+}
+
+// event -> {received}
+const handleCheckoutSessionCompleted = event => {
+  const session = sessionFromEvent(event)
+  return searchChkoutId(session) // session -> {session, found, doc}
+    .then(switchFound) // {session, found, doc} -> {cfi, doc}
+    .then(sendEmailToShop) // {cfi, doc} -> doc
+    .then(_ => ({ received: true })) // _ -> {received}
+}
+
+// session -> {session, found, doc}
+const searchChkoutId = session => {
+  return fauna
+    .query(qSearchValue('chkouts-chkoutId')(session.client_reference_id))
+    .then(({ found, doc }) => ({ session, found, doc }))
+}
+
+// {session, found, doc} -> {cfi, doc}
+const switchFound = ({ session, found, doc }) => {
+  if (found) {
+    return fauna
+      .query(qUpdateChkout(session, doc))
+      .then(_ => ({ cfi: session.client_reference_id, doc }))
+  }
+  console.log(
+    `Not found session.client_reference_id ${session.client_reference_id}`
+  )
+  return { cfi: session.client_reference_id, doc }
+}
+
+// {cfi, doc} -> doc
+const sendEmailToShop = ({ cfi, doc }) => {
+  console.log('to be sending email to shop regarding charge and chkout data')
+  const shopEmail = doc.data.location.email
+  console.log('shopEmail', shopEmail)
+
+  const subject = doc.data
+    ? `Purchase: Client reference id: ${cfi}`
+    : `Charged without checkout document. Client reference id: ${cfi}`
+  console.log('subject', subject)
+
+  const html = doc ? htmlFromChkout(doc.data) : subject
+  console.log('html', html)
+
+  const msg = {
+    to: shopEmail,
+    from: process.env.FROM_EMAIL_ADDRESS,
+    subject,
+    html
+  }
+  return sgMail.send(msg).then(_ => doc)
+}
+
+const sessionFromEvent = event => ({
+  evId: event.id,
+  tsEvent: event.created,
+  obId: event.data.object.id,
+  amount_total: event.data.object.amount_total,
+  client_reference_id: event.data.object.client_reference_id,
+  customer: event.data.object.customer,
+  customer_email: event.data.object.customer_email,
+  payment_method_types: event.data.object.payment_method_types,
+  payment_status: event.data.object.payment_status
+})
+
+// Helpers - query construction
+const qSearchValue = index => value =>
+  q.Let(
+    { ref: q.Match(q.Index(index), value) },
+    q.If(
+      q.Exists(q.Var('ref')),
+      { found: true, doc: q.Get(q.Var('ref')) },
+      { found: false, doc: null, message: value }
+    )
+  )
+const qUpdateChkout = (session, doc) => {
+  const ts = Date.now()
+  const tsCharged = session.payment_status === 'paid' ? ts : null
+  return q.Update(doc.ref, {
+    data: { ...doc, session, tsUpdated: ts, tsCharged }
+  })
+}
+
+// Helpers
+const htmlFromChkout = chkoutData => {
+  return `<html>${JSON.stringify(chkoutData)}</html>` // to be implemeneted
+}

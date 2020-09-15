@@ -16,7 +16,7 @@ const Location = () => {
     locations.map(toOption)
   )
 
-  const handler = selected => dispatch(aLocationUpdate(toLocation(selected)))
+  const handler = selected => dispatch(aLocationUpdate(toLocation(locations)(selected)))
 
   return (
     <div className={style.location}>
@@ -37,7 +37,16 @@ export default Location
 // Helpers
 const toOption = loc => ({ value: loc.locId, label: loc.address })
 
-const toLocation = option => ({ locId: option.value, address: option.label })
+const toLocation = locations => option => {
+  const found = locations.find(l => l.locId === option.value)
+  if (!found) return locationInitialState
+  return {
+    locId: found.locId,
+    address: found.address,
+    phone: found.phone,
+    email: found.email
+  }
+}
 
 // Helpers - CSS
 const customStyles = {
