@@ -19,6 +19,9 @@ const aCartUpdated = cart => ({
 })
 
 // asynchronous action creators
+export const aCartReset = () => dispatch =>
+  resetCart().then(cart => dispatch(aCartUpdated(cart)))
+
 export const aCartAddItem = item => dispatch =>
   updateCart(addItem, item).then(cart => dispatch(aCartUpdated(cart)))
 
@@ -34,7 +37,8 @@ export const aCartIncQty = itemId => dispatch =>
 export const aCartDecQty = itemId => dispatch =>
   updateCart(decQty, itemId).then(cart => dispatch(aCartUpdated(cart)))
 
-export const aCartLoad = () => dispatch => load().then(cart => dispatch(aCartLoaded(cart)))
+export const aCartLoad = () => dispatch =>
+  load().then(cart => dispatch(aCartLoaded(cart)))
 
 // cart shape:
 export const cartInitialState = [] // [..., {itemId, qty, extras, options, priceId, productId}]
@@ -59,6 +63,9 @@ const getCart = () => get('cart').then(cart => cart || cartInitialState)
 
 // setCart:: cart -> Promise.resolve(cart)
 const setCart = cart => set('cart', cart).then(() => cart)
+
+// resetCart:: () -> Promise.resolve([])
+const resetCart = () => setCart([])
 
 // updateCartItems:: param -> f -> Promise.resolve(cart)
 // f:: param -> cart -> cart
@@ -90,7 +97,9 @@ const incQty = itemId => cart => {
 }
 
 const decQty = itemId => cart => {
-  return cart.map(i => (i.itemId !== itemId ? i : { ...i, qty: i.qty - 1 < 0 ? 0 : i.qty - 1 }))
+  return cart.map(i =>
+    i.itemId !== itemId ? i : { ...i, qty: i.qty - 1 < 0 ? 0 : i.qty - 1 }
+  )
 }
 
 // Helpers - insert item into items array

@@ -1,7 +1,7 @@
 module.exports = {
   locations: [
     {
-      locId: 'LR_TRUGANINA',
+      id: 'LR_TRUGANINA',
       address: '5/1 Connect Road, TRUGANINA, VIC 3029',
       number: '5/1',
       street: 'Connect Road',
@@ -13,7 +13,7 @@ module.exports = {
       email: 'hoang21@gmail.com'
     },
     {
-      locId: 'LR_LAVERTON',
+      id: 'LR_LAVERTON',
       address: '3A/141 Dohertys Road, LAVERTON NORTH, VIC 3026',
       number: '3A/141',
       street: 'Dohertys Road',
@@ -25,7 +25,7 @@ module.exports = {
       email: 'hoang21@gmail.com'
     },
     {
-      locId: 'LR_DERRIMUT',
+      id: 'LR_DERRIMUT',
       address: '12/133 Elgar Road, DERRIMUT, VIC 3030',
       number: '12/133',
       street: 'Elgar Road',

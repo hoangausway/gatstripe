@@ -28,6 +28,11 @@ const aChkoutUpdated = chkout => ({
   payload: chkout
 })
 
+// async util function
+export const getLatestChkout = () => {
+  return getChkouts().then(ret => ret[0])
+}
+
 // asynchronous action creators
 export const aChkoutCreate = chkout => dispatch =>
   setChkout(chkout).then(chkout => dispatch(aChkoutCreated(chkout)))
@@ -50,7 +55,9 @@ export default (state = chkoutInitialState, { type, payload }) => {
 const getChkouts = () => {
   return get('chkouts').then(ret => {
     if (!ret) {
-      return set('chkouts', []).then(() => Promise.resolve([]))
+      return set('chkouts', [chkoutInitialState]).then(() =>
+        Promise.resolve([chkoutInitialState])
+      )
     }
     return Promise.resolve(ret)
   })
@@ -63,13 +70,12 @@ const setChkout = chkout => {
     .then(() => Promise.resolve(chkout))
 }
 
-const update = chkout => {
-  return getChkouts().then(ret => {
-    ret.map(c =>
-      c.chkoutId !== chkout.chkoutId
-        ? c
-        : { ...c, tsCharged: chkout.tsCharged, tsChargeFailed: chkout.tsChargeFailed }
+const update = chkout =>
+  getChkouts()
+    .then(ret =>
+      ret.map(c =>
+        c.id !== chkout.id ? c : { ...c, tsCharged: chkout.tsCharged }
+      )
     )
-    return chkout
-  })
-}
+    .then(newArr => set('chkouts', newArr))
+    .then(_ => chkout)

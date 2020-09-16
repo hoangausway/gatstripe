@@ -4,7 +4,7 @@ import { useNavigate } from '@reach/router'
 
 // TBD: wont be used aUserVerifyEmail
 // import { aUserVerifyEmail } from '../state/user-reducer'
-import style from './verify-email.module.scss'
+import style from './confirm-email.module.scss'
 import Notifications, { notify } from 'react-notify-toast'
 
 const verifyingStatus = {
@@ -13,7 +13,7 @@ const verifyingStatus = {
   FAIL: 'Not verified '
 }
 
-const VerifyEmail = props => {
+const ConfirmEmail = props => {
   const token = props.token
 
   const nav = useNavigate()
@@ -44,4 +44,4 @@ const VerifyEmail = props => {
     </div>
   )
 }
-export default VerifyEmail
+export default ConfirmEmail

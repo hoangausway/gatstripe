@@ -35,13 +35,13 @@ const Location = () => {
 export default Location
 
 // Helpers
-const toOption = loc => ({ value: loc.locId, label: loc.address })
+const toOption = loc => ({ value: loc.id, label: loc.address })
 
 const toLocation = locations => option => {
-  const found = locations.find(l => l.locId === option.value)
+  const found = locations.find(l => l.id === option.value)
   if (!found) return locationInitialState
   return {
-    locId: found.locId,
+    id: found.id,
     address: found.address,
     phone: found.phone,
     email: found.email

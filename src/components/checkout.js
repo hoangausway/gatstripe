@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { useSelector, useDispatch } from 'react-redux'
 import cns from 'classnames'
 import style from './checkout.module.scss'
-import { aChkoutCreate, aChkoutUpdate } from '../state/checkout-reducer'
+import { aChkoutCreate } from '../state/checkout-reducer'
 
 /*
   3 factors for checkout process
@@ -12,6 +12,11 @@ import { aChkoutCreate, aChkoutUpdate } from '../state/checkout-reducer'
   - Where: outlet's location. Location list is available offline in app.
   - What: selected items. Items list is available offline in app.
 */
+
+class ErrorEmail extends Error {}
+class ErrorRequest extends Error {}
+const reject = err => Promise.reject(err)
+const resolve = res => Promise.resolve(res)
 
 // Helpers
 const mergeByPriceId = items => {
@@ -49,19 +54,23 @@ const calTotal = cart => {
 
 // Helpers - API
 // purchaseIntent:: chkout -> chkout or reject(reason)
-const purchaseIntent = chkout => {
+const purchaseIntent = dispatch => chkout => {
   return window
-    .fetch(urlVerify, reqVerify(chkout))
+    .fetch(urlPurchaseIntent, reqPurchaseIntent(chkout))
     .then(res =>
       res.status === 200 ? res.json() : reject(new ErrorRequest(res.statusText))
     )
     .then(json => {
-      const isReady = json.chkoutId && json.chkoutId === chkout.chkoutId
-      return isReady ? chkout : reject(new ErrorEmail(json.message))
+      const isReady = json.id && json.id === chkout.id
+      if (!isReady) {
+        return reject(new ErrorEmail(json.message))
+      }
+      dispatch(aChkoutCreate({ ...chkout, tsCharging: Date.now() }))
+      return chkout
     })
 }
-const urlVerify = '/.netlify/functions/purchase-intent'
-const reqVerify = chkout => ({
+const urlPurchaseIntent = '/.netlify/functions/purchase-intent'
+const reqPurchaseIntent = chkout => ({
   headers: {
     'Access-Control-Allow-Origin': '*',
     Accept: 'application/json',
@@ -84,63 +93,53 @@ const startLoading = setIsLoading => chkout => {
 const endLoading = setIsLoading => setIsLoading(false)
 
 const createChkout = (user, location, cart) => ({
-  chkoutId: uuidv4(),
+  id: uuidv4(),
   user,
   location,
   cart, // [..., {itemId, qty, extras, options, priceId, productId}]
   tsCreated: Date.now(), // timestamp
   tsCharged: null,
-  tsCharging: null,
-  tsChargeFailed: null
+  tsCharging: null
 })
 
 const purchase = chkout => ({
   mode: 'payment',
-  clientReferenceId: chkout.chkoutId,
+  clientReferenceId: chkout.id,
   customerEmail: chkout.user.email,
   lineItems: cartLineItems(chkout.cart),
   successUrl: `${window.location.origin}/success`,
   cancelUrl: `${window.location.origin}/cancel`
 })
 
-const stripeRedirect = dispatch => chkout => {
-  dispatch(aChkoutCreate({ ...chkout, tsCharging: Date.now() }))
-
+const stripeRedirect = chkout => {
   return loadStripe(process.env.GATSBY_STRIPE_PUBLISHABLE_KEY)
     .then(stripe => stripe.redirectToCheckout(purchase(chkout)))
     .then(result => {
-      if (!result.error) {
-        dispatch(aChkoutUpdate({ chkout, tsCharged: Date.now() }))
-        return result
+      if (result.error) {
+        return reject(result.error.message || 'Could not redirect to checkout')
       }
-      dispatch(aChkoutUpdate({ chkout, tsChargeFailed: Date.now() }))
-      return reject(result.error.message || 'Could not redirect to checkout')
+      return result
     })
 }
 
-const validateContact = user =>
+const validateUser = user =>
   user.email.length * user.name.length * user.phone.length > 0
-const validateLocation = location => location.locId !== 'LOC_NONE'
+const validateLocation = location => location.id !== 'LOC_NONE'
 const validateCart = cart => cart.length > 0
 // validateChkout:: chkout -> Promise
 const validateChkout = chkout => {
-  if (!validateContact(chkout.user)) {
-    return reject(Reasons.ERROR_INVALID_USER)
+  if (!validateUser(chkout.user)) {
+    return reject(new Error('All contact fields should not be empty'))
   }
   if (!validateLocation(chkout.location)) {
-    return reject(Reasons.ERROR_INVALID_LOCATION)
+    return reject(new Error('A location should be selected'))
   }
   if (!validateCart(chkout.cart)) {
-    return reject(Reasons.ERROR_INVALID_CART)
+    return reject(new Error('Cart should not empty'))
   }
 
   return resolve(chkout)
 }
-
-class ErrorEmail extends Error {}
-class ErrorRequest extends Error {}
-const reject = err => Promise.reject(err)
-const resolve = res => Promise.resolve(res)
 
 const Checkout = () => {
   const dispatch = useDispatch()
@@ -160,9 +159,9 @@ const Checkout = () => {
     resolve(chkout)
       .then(startLoading(setIsLoading)) // chkout -> chkout
       .then(validateChkout) // chkout -> chkout
-      .then(purchaseIntent) // chkout -> chkout
-      .then(stripeRedirect(dispatch))
-      .catch(err => console.log(err.name))
+      .then(purchaseIntent(dispatch)) // chkout -> chkout
+      .then(stripeRedirect) // chkout -> result
+      .catch(err => console.log(err))
       .finally(() => endLoading(setIsLoading))
   }
 

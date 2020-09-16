@@ -12,7 +12,7 @@ import Cart from '../components/cart'
 import Options from '../components/options'
 import Success from '../components/success'
 import Cancel from '../components/cancel'
-import VerifyEmail from '../components/verify-email'
+import ConfirmEmail from '../components/confirm-email'
 
 import NotFound from '../components/notfound'
 
@@ -20,7 +20,7 @@ import ListCart from '../components/list-cart'
 import OptionsCart from '../components/options-cart'
 import CancelCart from '../components/cancel-cart'
 import SuccessCart from '../components/success-cart'
-import VerifyEmailCart from '../components/verify-email-cart'
+import ConfirmEmailCart from '../components/confirm-email-cart'
 
 import { useDispatch } from 'react-redux'
 import { aDataFeed } from '../state/list-reducer'
@@ -61,7 +61,7 @@ const Index = ({ data }) => {
             <Options path='options' />
             <Success path='success' />
             <Cancel path='cancel' />
-            <VerifyEmail path='verify-email/:token' />
+            <ConfirmEmail path='verify-email/:token' />
             <NotFound default />
           </Router>
         </LayoutSmall>
@@ -75,7 +75,7 @@ const Index = ({ data }) => {
             <OptionsCart path='options' />
             <SuccessCart path='success' />
             <CancelCart path='cancel' />
-            <VerifyEmailCart path='verify-email/:token' />
+            <ConfirmEmailCart path='verify-email/:token' />
             <NotFound default />
           </Router>
         </LayoutBig>

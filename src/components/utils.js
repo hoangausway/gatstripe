@@ -4,7 +4,6 @@ import _ from 'lodash'
 import { Subject } from 'rxjs'
 import {
   map,
-  startWith,
   debounceTime,
   distinctUntilChanged
 } from 'rxjs/operators'

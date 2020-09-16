@@ -1,6 +1,5 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { useNavigate } from '@reach/router'
 
 import Contact from './contact'
 import Location from './location'
@@ -14,7 +13,6 @@ import {
 import style from './cart.module.scss'
 
 const Cart = ({ location }) => {
-  const nav = useNavigate()
   const cart = useSelector(state => state.cart)
 
   return (
@@ -29,10 +27,6 @@ const Cart = ({ location }) => {
         ))}
       </section>
       <br />
-      <div onClick={e => nav('../list')}>click going to LIST</div>
-      <div onClick={e => nav('../options')}>click going to OPTIONS</div>
-      <div onClick={e => nav('../success')}>click going to SUCCESS</div>
-      <div onClick={e => nav('../cancel')}>click going to CANCEL</div>
     </div>
   )
 }

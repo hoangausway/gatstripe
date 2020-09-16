@@ -9,24 +9,11 @@ require('dotenv').config({
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { q, fauna } = require('./fauna')
 const sgMail = require('@sendgrid/mail')
-const { jsonError, jsonSuccess, reject, log } = require('./utils')
+const { jsonError, jsonSuccess, reject } = require('./utils')
 
 class ErrorUnexpectedEventType extends Error {}
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
-exports.handler = async ({ body, headers }) => {
-  return Promise.resolve(
-    stripe.webhooks.constructEvent(
-      body,
-      headers['stripe-signature'],
-      process.env.STRIPE_WEBHOOK_SECRET
-    )
-  )
-    .then(handleEvent) // event -> {received}
-    .then(jsonSuccess) // {received} -> {status, body}
-    .catch(handleError) // err -> {status, body}
-}
 
 // Helpers
 const handleError = err => {
@@ -58,8 +45,9 @@ const handleCheckoutSessionCompleted = event => {
 
 // session -> {session, found, doc}
 const searchChkoutId = session => {
+  const idxSearch = 'chkouts_search_id'
   return fauna
-    .query(qSearchValue('chkouts-chkoutId')(session.client_reference_id))
+    .query(qSearchValue(idxSearch)(session.client_reference_id))
     .then(({ found, doc }) => ({ session, found, doc }))
 }
 
@@ -79,16 +67,13 @@ const switchFound = ({ session, found, doc }) => {
 // {cfi, doc} -> doc
 const sendEmailToShop = ({ cfi, doc }) => {
   console.log('to be sending email to shop regarding charge and chkout data')
-  const shopEmail = doc.data.location.email
-  console.log('shopEmail', shopEmail)
+  const shopEmail = doc.data.locEmail
 
   const subject = doc.data
     ? `Purchase: Client reference id: ${cfi}`
     : `Charged without checkout document. Client reference id: ${cfi}`
-  console.log('subject', subject)
 
   const html = doc ? htmlFromChkout(doc.data) : subject
-  console.log('html', html)
 
   const msg = {
     to: shopEmail,
@@ -125,11 +110,24 @@ const qUpdateChkout = (session, doc) => {
   const ts = Date.now()
   const tsCharged = session.payment_status === 'paid' ? ts : null
   return q.Update(doc.ref, {
-    data: { ...doc, session, tsUpdated: ts, tsCharged }
+    data: { ...doc.data, tsUpdated: ts, tsCharged }
   })
 }
 
 // Helpers
 const htmlFromChkout = chkoutData => {
   return `<html>${JSON.stringify(chkoutData)}</html>` // to be implemeneted
+}
+
+exports.handler = async ({ body, headers }) => {
+  return Promise.resolve(
+    stripe.webhooks.constructEvent(
+      body,
+      headers['stripe-signature'],
+      process.env.STRIPE_WEBHOOK_SECRET
+    )
+  )
+    .then(handleEvent) // event -> {received}
+    .then(jsonSuccess) // {received} -> {status, body}
+    .catch(handleError) // err -> {status, body}
 }

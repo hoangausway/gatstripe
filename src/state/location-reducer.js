@@ -26,7 +26,7 @@ export const aLocationUpdate = location => dispatch =>
 
 // location shape:
 export const locationInitialState = {
-  locId: 'LOC_NONE',
+  id: 'LOC_NONE',
   address: 'Select a location...'
 }
 

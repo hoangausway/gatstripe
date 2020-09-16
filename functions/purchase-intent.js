@@ -1,5 +1,5 @@
 /*
-  Accept: chkout object { chkoutId user location cart } = body
+  Accept: chkout object { id user location cart } = body
   Validate:
   - Is user exist and valid. If not, create user record { name, phone, email, verified(false)}.
   If exists, always update name and phone if they're newer to existing.
@@ -8,8 +8,8 @@
   - Is cart not empty. If not, reject with a reason.
 
   Happy path:
-  - Create purchase record: {chkoutId user location cart tsUpdated tsCharged(null)}
-  - Return success with chkoutId
+  - Create purchase record: {id user location cart tsUpdated tsCharged(null)}
+  - Return success with id
   - Any error, reject with a reason
 */
 require('dotenv').config({
@@ -76,20 +76,25 @@ const createUserData = user => ({
 })
 
 // don't blindly copy all fields from client's chkout object
-// use only needed fields of chkout object: {chkoutId, user, location, cart}
+// use only needed fields of chkout object: {id, user, location, cart}
 const createChkoutData = chkout => ({
-  chkoutId: chkout.chkoutId,
-  user: chkout.user,
-  location: chkout.location,
+  id: chkout.id,
+  userEmail: chkout.user.email,
+  userName: chkout.user.name,
+  userPhone: chkout.user.phone,
+  locId: chkout.location.id,
+  locAddress: chkout.location.address,
+  locPhone: chkout.location.phone,
+  locEmail: chkout.location.email,
   cart: chkout.cart,
   tsUpdated: Date.now(),
-  tsCharged: null
+  tsCharged: 0
 })
 
 // Helpers - logics
 const errorHandle = err => {
   if (err instanceof ErrorEmail) {
-    return jsonSuccess({ chkoutId: null, message: err.message })
+    return jsonSuccess({ id: null, message: err.message })
   }
   return jsonError(500, err.message)
 }
@@ -97,12 +102,12 @@ const errorHandle = err => {
 const newChkout = chkout => {
   return fauna
     .query(qNewChkout(createChkoutData(chkout)))
-    .then(_ => ({ chkoutId: chkout.chkoutId }))
+    .then(_ => ({ id: chkout.id }))
 }
 
 const validateLocation = chkout => {
-  const { locId, address } = chkout.location
-  const isValid = locId && locId.length > 0 && address && address.length > 0
+  const { id, address } = chkout.location
+  const isValid = id && id.length > 0 && address && address.length > 0
   return isValid ? chkout : reject(new ErrorRequest('Invalid location'))
 }
 
@@ -196,7 +201,7 @@ exports.handler = async (event, context) => {
     .then(switchFoundEmail) // {chkout, found, doc} -> _
     .then(validateLocation) // chkout -> _
     .then(validateCart) // chkout -> _
-    .then(newChkout) // chkout -> _
-    .then(jsonSuccess) // chkout -> _
-    .catch(errorHandle) // err -> _
+    .then(newChkout) // chkout -> {data: chkout}
+    .then(jsonSuccess) // chkout -> {statusCode, body}
+    .catch(errorHandle) // err -> {statusCode, body}
 }
