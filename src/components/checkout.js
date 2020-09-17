@@ -20,6 +20,13 @@ class ErrorRequest extends Error {}
 const reject = err => Promise.reject(err)
 const resolve = res => Promise.resolve(res)
 
+const Messages = {
+  VALIDATING: 'Validating contact, location, cart...',
+  VERIFYING: 'Verifying email...',
+  REDIRECTING: 'Redirecting to secured checkout...',
+  ERROR: ''
+}
+
 // Helpers
 const mergeByPriceId = items => {
   return items.reduce((acc, i, idx) => {
@@ -143,7 +150,7 @@ const validateChkout = chkout => {
   return resolve(chkout)
 }
 
-const updateMessage = (dispatch, message) => data => {
+const notify = (dispatch, message) => data => {
   dispatch(aMessageUpdated(message))
   return data
 }
@@ -165,15 +172,15 @@ const Checkout = () => {
     const chkout = createChkout(user, location, cart)
     resolve(chkout)
       .then(startLoading(setIsLoading)) // chkout -> chkout
-      .then(updateMessage(dispatch, ['Validating contact, location, cart...']))
+      .then(notify(dispatch, [Messages.VALIDATING]))
       .then(validateChkout) // chkout -> chkout
-      .then(updateMessage(dispatch, ['Veriying email...']))
+      .then(notify(dispatch, [Messages.VERIFYING]))
       .then(purchaseIntent(dispatch)) // chkout -> chkout
-      .then(updateMessage(dispatch, ['Redirecting to secured checkout...']))
+      .then(notify(dispatch, [Messages.REDIRECTING]))
       .then(stripeRedirect) // chkout -> result
       .catch(err => {
         console.log(err)
-        updateMessage(dispatch, [err.message, 1])()
+        notify(dispatch, [err.message, 1])()
       })
       .finally(() => endLoading(setIsLoading))
   }

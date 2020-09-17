@@ -24,7 +24,7 @@ const ConfirmEmail = ({ token }) => {
   const user = useSelector(state => state.user)
   const [message, setMessage] = React.useState(['', 0])
 
-  const updateMessage = message => data => {
+  const notify = message => data => {
     setMessage(message)
     return data
   }
@@ -32,9 +32,9 @@ const ConfirmEmail = ({ token }) => {
   React.useEffect(() => {
     if (token) {
       resolve(token)
-        .then(updateMessage([Messages.CONFIRMING]))
+        .then(notify([Messages.CONFIRMING]))
         .then(confirmEmail)
-        .then(email => updateMessage([`${Messages.SUCCESS} ${email}.`]))
+        .then(email => notify([`${Messages.SUCCESS} ${email}.`]))
         .then(email => {
           if (email !== user.email) {
             dispatch(aUserChangeEmail(email))
@@ -42,7 +42,7 @@ const ConfirmEmail = ({ token }) => {
         })
         .catch(err => {
           console.log(err.message)
-          updateMessage([Messages.ERROR, 1])()
+          notify([Messages.ERROR, 1])()
         })
     }
   }, [token])
