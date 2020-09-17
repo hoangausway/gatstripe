@@ -13,9 +13,9 @@ export const aMessageUpdated = message => ({
   payload: message
 })
 
-const messageInitialState = ['', 0]
+export const initialMessageState = ['', 0]
 
-export default (state = messageInitialState, { type, payload }) => {
+export default (state = initialMessageState, { type, payload }) => {
   switch (type) {
     case MessageActions.MESSAGE_UPDATED:
       return payload

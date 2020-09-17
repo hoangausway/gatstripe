@@ -33,7 +33,7 @@ export const aUserLoad = () => dispatch => load().then(user => dispatch(aUserLoa
 export const userInitialState = {
   name: '',
   phone: '',
-  email: null
+  email: ''
 }
 
 // reducer

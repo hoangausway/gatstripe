@@ -6,8 +6,8 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
-const stripe = require('./services/stripe')
-const sgMail = require('./services/sendgridmail')
+const { stripe } = require('./services/stripe')
+const { sgMail } = require('./services/sendgridmail')
 const { q, fauna, qSearchValue } = require('./services/fauna')
 const { jsonError, jsonSuccess, reject } = require('./utils')
 
@@ -46,7 +46,7 @@ const selectEvent = event => {
         return reject(new ErrorAlreadyHandled('Already handled'))
       }
 
-      return fauna.query(qNewStripeEvent).then(_ => sessionFromEvent(event))
+      return fauna.query(qNewStripeEvent(event.id)).then(_ => sessionFromEvent(event))
     })
 }
 
