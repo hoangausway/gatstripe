@@ -3,8 +3,10 @@ import { loadStripe } from '@stripe/stripe-js'
 import { v4 as uuidv4 } from 'uuid'
 import { useSelector, useDispatch } from 'react-redux'
 import cns from 'classnames'
+
 import style from './checkout.module.scss'
 import { aChkoutCreate } from '../state/checkout-reducer'
+import { aMessageUpdated } from '../state/message-reducer'
 
 /*
   3 factors for checkout process
@@ -61,10 +63,10 @@ const purchaseIntent = dispatch => chkout => {
       res.status === 200 ? res.json() : reject(new ErrorRequest(res.statusText))
     )
     .then(json => {
-      const isReady = json.id && json.id === chkout.id
-      if (!isReady) {
+      if (!json.id || json.id !== chkout.id) {
         return reject(new ErrorEmail(json.message))
       }
+
       dispatch(aChkoutCreate({ ...chkout, tsCharging: Date.now() }))
       return chkout
     })
@@ -141,6 +143,11 @@ const validateChkout = chkout => {
   return resolve(chkout)
 }
 
+const updateMessage = (dispatch, message) => data => {
+  dispatch(aMessageUpdated(message))
+  return data
+}
+
 const Checkout = () => {
   const dispatch = useDispatch()
 
@@ -158,10 +165,16 @@ const Checkout = () => {
     const chkout = createChkout(user, location, cart)
     resolve(chkout)
       .then(startLoading(setIsLoading)) // chkout -> chkout
+      .then(updateMessage(dispatch, ['Validating contact, location, cart...']))
       .then(validateChkout) // chkout -> chkout
+      .then(updateMessage(dispatch, ['Veriying email...']))
       .then(purchaseIntent(dispatch)) // chkout -> chkout
+      .then(updateMessage(dispatch, ['Redirecting to secured checkout...']))
       .then(stripeRedirect) // chkout -> result
-      .catch(err => console.log(err))
+      .catch(err => {
+        console.log(err)
+        updateMessage(dispatch, [err.message, 1])()
+      })
       .finally(() => endLoading(setIsLoading))
   }
 

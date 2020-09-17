@@ -1,8 +1,7 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
-const sgMail = require('@sendgrid/mail')
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+const sgMail = require('./services/sendgridmail')
 
 const createLink = token => `${process.env.CLIENT_ORIGIN}/confirm-email/${token}`
 

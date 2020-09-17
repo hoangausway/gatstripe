@@ -1,22 +1,17 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
-const { q, fauna } = require('./fauna')
-const { jsonError, jsonSuccess, reject, resolve } = require('./utils')
+const { fauna, qSearchValue } = require('./services/fauna')
+const {
+  jsonError,
+  jsonSuccess,
+  reject,
+  resolve,
+  validateMethod,
+  ErrorRequest
+} = require('./utils')
 
 class ErrorId extends Error {}
-class ErrorRequest extends Error {}
-
-// Helpers - queries construction
-const qSearchValue = index => value =>
-  q.Let(
-    { ref: q.Match(q.Index(index), value) },
-    q.If(
-      q.Exists(q.Var('ref')),
-      { found: true, doc: q.Get(q.Var('ref')) },
-      { found: false, doc: null, message: value }
-    )
-  )
 
 // Helpers - logics
 const errorHandle = err => {
@@ -24,13 +19,6 @@ const errorHandle = err => {
     return jsonError(400, err.message)
   }
   return jsonError(500, err.message)
-}
-
-const validateMethod = event => {
-  if (event.httpMethod !== 'POST') {
-    return reject(new ErrorRequest('Invalid request'))
-  }
-  return event.body
 }
 
 const validateBody = body => {
@@ -52,6 +40,7 @@ const searchById = id => {
   })
 }
 
+// lambda function
 exports.handler = async (event, context) => {
   return resolve(event)
     .then(validateMethod) // event -> body

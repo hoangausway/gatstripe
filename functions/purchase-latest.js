@@ -1,11 +1,17 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
-const { q, fauna } = require('./fauna')
-const { jsonError, jsonSuccess, reject, resolve } = require('./utils')
+const { q, fauna } = require('./services/fauna')
+const {
+  jsonError,
+  jsonSuccess,
+  reject,
+  resolve,
+  validateMethod,
+  ErrorRequest
+} = require('./utils')
 
 class ErrorEmail extends Error {}
-class ErrorRequest extends Error {}
 
 // Helpers - queries construction
 const qSearchUserEmailLatestCharged = email => {
@@ -27,13 +33,6 @@ const errorHandle = err => {
   return jsonError(500, err.message)
 }
 
-const validateMethod = event => {
-  if (event.httpMethod !== 'POST') {
-    return reject(new ErrorRequest('Invalid request'))
-  }
-  return event.body
-}
-
 const validateBody = body => {
   const { email } = JSON.parse(body)
   if (!email || email.length < 5) {
@@ -52,6 +51,7 @@ const searchLatestChkoutByEmail = email => {
   })
 }
 
+// lambda function
 exports.handler = async (event, context) => {
   return resolve(event)
     .then(validateMethod) // event -> body

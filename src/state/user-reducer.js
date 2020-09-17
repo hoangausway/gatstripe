@@ -69,35 +69,3 @@ const updateUserProp = (f, prop) => {
 const changeEmail = email => user => ({ ...user, email })
 const changeName = name => user => ({ ...user, name })
 const changePhone = phone => user => ({ ...user, phone })
-
-/*
-  verify and confirm are just utilities which won't change user state
-  TBD: move these functions to appropriate places
-*/
-
-// confirm:: a -> Promise.resolve(b)
-export const confirm = token => {
-  return (
-    window
-      .fetch(urlConfirm, reqConfirm(token))
-      .then(res => {
-        return res.status === 200 ? res.json() : Promise.reject(res.body)
-      }) // expected format {email, name, phone, verified}
-      // .then(updateUser)
-      .catch(err => {
-        console.log(err)
-        return load()
-      })
-  )
-}
-const urlConfirm = '/.netlify/functions/confirm-email'
-const reqConfirm = token => ({
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-    Accept: 'application/json',
-    'Content-Type': 'application/json'
-  },
-  mode: 'cors',
-  method: 'POST',
-  body: JSON.stringify({ token })
-})

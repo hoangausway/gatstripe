@@ -1,0 +1,32 @@
+.drawer {
+  width: 100%;
+  background-color: white;
+  border-radius: 5px;
+  overflow: hidden;
+  transition: height 1s ease-in-out;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  .button {
+    width: 5rem;
+    margin: 0 0.5rem;
+    border-radius: 5px;
+    color: lightblue;
+    background-color: black;
+    text-align: center;
+    padding: 0.3rem;
+  }
+
+  >p {
+    margin: 0 0.5rem;
+  }
+
+  .normal {
+    color: blue;
+  }
+  .error {
+    color: red
+  }
+}

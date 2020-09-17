@@ -17,29 +17,23 @@ require('dotenv').config({
 })
 const { createLink, sendLink } = require('./email.template')
 const { createToken } = require('./token')
-const { q, fauna } = require('./fauna')
-const { jsonError, jsonSuccess, reject, resolve } = require('./utils')
+const { q, fauna, qSearchValue } = require('./services/fauna')
+const {
+  jsonError,
+  jsonSuccess,
+  reject,
+  resolve,
+  validateMethod,
+  ErrorRequest
+} = require('./utils')
 
 class ErrorEmail extends Error {}
-class ErrorRequest extends Error {}
 
 // Helpers - query construction
 const onehr = 60 * 60 * 1000
 const twohrs = 2 * 60 * 60 * 1000
 const next24hrs = () => Date.now() + 24 * onehr
 const isExpiredSoon = expired => !expired || expired < Date.now() - twohrs
-
-// Helpers - queries construction
-// search a value in an index; return the document if found
-const qSearchValue = index => value =>
-  q.Let(
-    { ref: q.Match(q.Index(index), value) },
-    q.If(
-      q.Exists(q.Var('ref')),
-      { found: true, doc: q.Get(q.Var('ref')) },
-      { found: false, doc: null, message: value }
-    )
-  )
 
 // create a user record
 const qNewUser = userData => {
@@ -140,13 +134,6 @@ const validateUser = body => {
 const isValidUser = user => {
   const { email, name, phone } = user
   return email && name && phone && email.length * name.length * phone.length > 0
-}
-
-const validateMethod = event => {
-  if (event.httpMethod !== 'POST') {
-    return reject(new ErrorRequest('Invalid request'))
-  }
-  return event.body
 }
 
 // notFoundUser:: user -> reject(reason)

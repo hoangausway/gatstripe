@@ -5,43 +5,91 @@ import { useNavigate } from '@reach/router'
 // TBD: wont be used aUserVerifyEmail
 // import { aUserVerifyEmail } from '../state/user-reducer'
 import style from './confirm-email.module.scss'
-import Notifications, { notify } from 'react-notify-toast'
+import { aUserChangeEmail } from '../state/user-reducer'
 
-const verifyingStatus = {
-  VERIFYING: 'Verifying...',
-  VERIFIED: 'Verified',
-  FAIL: 'Not verified '
+class ErrorEmail extends Error {}
+class ErrorRequest extends Error {}
+const reject = err => Promise.reject(err)
+const resolve = res => Promise.resolve(res)
+
+const Messages = {
+  CONFIRMING: 'Confirming email',
+  SUCCESS: 'Email had been confirmed:',
+  ERROR: 'The link you use to confirm email may already be used or broken.'
 }
-
-const ConfirmEmail = props => {
-  const token = props.token
-
+const ConfirmEmail = ({ token }) => {
   const nav = useNavigate()
   const dispatch = useDispatch()
 
   const user = useSelector(state => state.user)
-  const [verifying, setVerifying] = React.useState(verifyingStatus.VERIFYING)
+  const [message, setMessage] = React.useState(['', 0])
 
-  // React.useEffect(() => {
-  //   console.log('useEffect', user)
-  //   console.log('token', token)
-  //   if (!user.verified && token) dispatch(aUserVerifyEmail(token))
-  // }, [])
+  const updateMessage = message => data => {
+    setMessage(message)
+    return data
+  }
 
-  // React.useEffect(() => {
-  //   if (user.verified) {
-  //     setVerifying(verifyingStatus.VERIFIED)
-  //     notify.show(`user.verified: ${user.verified}`)
-  //   }
-  // }, [user.verified])
+  React.useEffect(() => {
+    if (token) {
+      resolve(token)
+        .then(updateMessage([Messages.CONFIRMING]))
+        .then(confirmEmail)
+        .then(email => updateMessage([`${Messages.SUCCESS} ${email}.`]))
+        .then(email => {
+          if (email !== user.email) {
+            dispatch(aUserChangeEmail(email))
+          }
+        })
+        .catch(err => {
+          console.log(err.message)
+          updateMessage([Messages.ERROR, 1])()
+        })
+    }
+  }, [token])
 
   return (
-    <div>
-      <Notifications />
-      <h3>Verifying email</h3>
-      <div>{verifying}</div>
-      <div onClick={e => nav('../cart')}>click going to CART</div>
+    <div className={style.confirm}>
+      <h3>Confirm email</h3>
+      <Notice message={message} />
+      <div onClick={e => nav('../cart')}>To Cart</div>
+      <div onClick={e => nav('../list')}>To List</div>
     </div>
   )
 }
 export default ConfirmEmail
+
+// confirmEmail:: token -> Promise.resolve(email) || Promise.reject(err)
+const confirmEmail = token => {
+  return window
+    .fetch(urlConfirm, reqConfirm(token))
+    .then(res =>
+      res.status === 200 ? res.json() : reject(new ErrorRequest(res.statusText))
+    )
+    .then(({ email }) => {
+      if (!email) {
+        return reject(new ErrorEmail('Not found email'))
+      }
+      return email
+    })
+}
+
+const urlConfirm = '/.netlify/functions/confirm-email'
+const reqConfirm = token => ({
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    Accept: 'application/json',
+    'Content-Type': 'application/json'
+  },
+  mode: 'cors',
+  method: 'POST',
+  body: JSON.stringify({ token })
+})
+
+const Notice = props => {
+  const [text, level] = props.message
+  return (
+    <div className={style.notice}>
+      <p className={level && level > 0 ? style.error : style.normal}>{text}</p>
+    </div>
+  )
+}

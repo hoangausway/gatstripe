@@ -1,106 +1,86 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
+const { decodeToken } = require('./token')
+const { q, fauna, qSearchValue } = require('./fauna')
+const {
+  jsonError,
+  jsonSuccess,
+  reject,
+  resolve,
+  validateMethod,
+  ErrorRequest
+} = require('./utils')
 
-const jwt = require('jwt-simple')
-const decodeToken = token => {
-  return jwt.decode(token, process.env.TOKEN_SALT)
-}
+class ErrorToken extends Error {}
 
 // Helpers - query construction
-const faunadb = require('faunadb')
-const q = faunadb.query
-const client = new faunadb.Client({
-  secret: process.env.FAUNADB_SERVER_SECRET
-})
-
-const qSearchValue = index => value => {
-  const query = q.Let(
-    {
-      ref: q.Match(q.Index(index), value)
-    },
-    q.If(
-      q.Exists(q.Var('ref')),
-      {
-        type: 'Found',
-        doc: q.Get(q.Var('ref'))
-      },
-      {
-        type: 'NotFound',
-        message: value
-      }
-    )
-  )
-  return query
-}
-
 const qUpdateVerified = userDoc => {
   return q.Update(userDoc.ref, {
     data: {
       ...userDoc.data,
-      verified: true
+      verified: true,
+      token: null,
+      expired: null
     }
   })
 }
-
-// Helpers - json response construction
-const jsonSuccess = data => {
-  console.log('jsonSuccess', data)
-  return {
-    statusCode: 200,
-    body: JSON.stringify(data)
-  }
+const qNullifyToken = userDoc => {
+  return q.Update(userDoc.ref, {
+    data: {
+      ...userDoc.data,
+      token: null,
+      expired: null
+    }
+  })
 }
-
-const jsonError = err => {
-  console.log('jsonError', err)
-  return {
-    statusCode: 500,
-    body: err.message
-  }
-}
-
-const resolve = data => Promise.resolve(data)
-const reject = msg => Promise.reject(new Error(msg))
 
 // Helpers - business logics
 // verifyToken:: token -> Promise
 const verifyToken = token => {
-  return client.query(qSearchValue('users-token')(token)).then(({ type }) => {
-    if (type !== 'Found') {
-      return reject('InvalidToken')
+  const idxToken = 'users-token'
+  return fauna.query(qSearchValue(idxToken)(token)).then(({ found, doc }) => {
+    if (!found) {
+      return reject(new ErrorToken('Not found token'))
     }
-    return resolve(decodeToken(token))
+
+    if (doc.data.expired < Date.now()) {
+      return fauna
+        .query(qNullifyToken(doc))
+        .then(_ => reject(new ErrorToken('Expired token')))
+    }
+
+    const user = decodeToken(token)
+    if (doc.data.email !== user.email) {
+      return fauna
+        .query(qNullifyToken(doc))
+        .then(_ => reject(new ErrorToken('Email not matched')))
+    }
+
+    return doc
   })
 }
 
-// verifyUser:: user -> Promise
-const verifyUser = user => {
-  return client
-    .query(qSearchValue('users-email')(user.email))
-    .then(({ type, doc }) => {
-      if (type !== 'Found') {
-        return reject('InvalidToken')
-      }
-      return resolve(doc)
-    })
-}
-
-// verifyExpired:: doc -> Promise
-const verifyExpired = doc => {
-  if (doc.data.expired < Date.now()) {
-    return reject('ExpiredToken')
-  }
-  return resolve(doc)
-}
-
-// updateVerified:: doc -> Promise
+// updateVerified:: doc -> doc
 const updateVerified = doc => {
-  return client
+  return fauna
     .query(qUpdateVerified(doc))
-    .then(({ data: { email, name, phone, verified } }) =>
-      jsonSuccess({ email, name, phone, verified })
-    )
+    .then(_ => ({ email: doc.data.email }))
+}
+
+const errorHandle = err => {
+  if (err instanceof ErrorToken) {
+    return jsonError(400, err.message)
+  }
+  return jsonError(500, err.message)
+}
+
+const validateBody = body => {
+  const { token } = JSON.parse(body)
+  if (!token) {
+    return reject(new ErrorRequest('Invalid token'))
+  }
+  return token
 }
 
 /*
@@ -112,19 +92,11 @@ const updateVerified = doc => {
   If everything OK, update user with verified: true, then return {email, name, phone, verified}
 */
 exports.handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
-    return reject('NotFound').catch(jsonError)
-  }
-
-  const { token } = JSON.parse(event.body)
-
-  if (!token) {
-    return reject('NotFound').catch(jsonError)
-  }
-
-  return verifyToken(token)
-    .then(verifyUser)
-    .then(verifyExpired)
-    .then(updateVerified)
-    .catch(jsonError)
+  return resolve(event)
+    .then(validateMethod) // event -> body
+    .then(validateBody) // body -> token
+    .then(verifyToken) // token -> doc
+    .then(updateVerified) // doc -> {email}
+    .then(jsonSuccess) // {email} -> {statusCode, body}
+    .catch(errorHandle) // err -> {statusCode, body}
 }

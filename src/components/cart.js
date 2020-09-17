@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import Contact from './contact'
 import Location from './location'
+import MessageDrawer from './drawer'
 
 import {
   aCartIncQty,
@@ -14,9 +15,9 @@ import style from './cart.module.scss'
 
 const Cart = ({ location }) => {
   const cart = useSelector(state => state.cart)
-
   return (
     <div className={style.cart}>
+      <MessageDrawer />
       <Contact />
       <div className={style.location}>
         <Location />

@@ -1,0 +1,14 @@
+.confirm {
+  width: 100%;
+  padding: 2rem;
+}
+
+.notice {
+  padding: 2rem;
+  .normal {
+    color: blue;
+  }
+  .error {
+    color: red;
+  }
+}

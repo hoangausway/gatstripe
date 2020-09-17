@@ -61,7 +61,7 @@ const Index = ({ data }) => {
             <Options path='options' />
             <Success path='success' />
             <Cancel path='cancel' />
-            <ConfirmEmail path='verify-email/:token' />
+            <ConfirmEmail path='confirm-email/:token' />
             <NotFound default />
           </Router>
         </LayoutSmall>
@@ -75,7 +75,7 @@ const Index = ({ data }) => {
             <OptionsCart path='options' />
             <SuccessCart path='success' />
             <CancelCart path='cancel' />
-            <ConfirmEmailCart path='verify-email/:token' />
+            <ConfirmEmailCart path='confirm-email/:token' />
             <NotFound default />
           </Router>
         </LayoutBig>

@@ -3,5 +3,6 @@ require('dotenv').config({
 })
 const jwt = require('jwt-simple')
 const createToken = user => jwt.encode(user, process.env.TOKEN_SALT)
+const decodeToken = token => jwt.decode(token, process.env.TOKEN_SALT)
 
-module.exports = { createToken }
+module.exports = { createToken, decodeToken }

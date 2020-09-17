@@ -22,4 +22,21 @@ const log = label => data => {
   console.log(`===log ${label} ===`, data)
   return data
 }
-module.exports = { jsonError, jsonSuccess, reject, resolve, log }
+
+class ErrorRequest extends Error {}
+const validateMethod = event => {
+  if (event.httpMethod !== 'POST') {
+    return reject(new ErrorRequest('Invalid request'))
+  }
+  return event.body
+}
+
+module.exports = {
+  jsonError,
+  jsonSuccess,
+  reject,
+  resolve,
+  log,
+  ErrorRequest,
+  validateMethod
+}

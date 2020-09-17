@@ -6,16 +6,14 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 })
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const { q, fauna } = require('./fauna')
-const sgMail = require('@sendgrid/mail')
+const stripe = require('./services/stripe')
+const sgMail = require('./services/sendgridmail')
+const { q, fauna, qSearchValue } = require('./services/fauna')
 const { jsonError, jsonSuccess, reject } = require('./utils')
 
 class ErrorUnexpectedEventType extends Error {}
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
-// Helpers
+// Helpers - logics
 const handleError = err => {
   console.log('handleError', err.message)
   if (err instanceof ErrorUnexpectedEventType) {
@@ -97,15 +95,6 @@ const sessionFromEvent = event => ({
 })
 
 // Helpers - query construction
-const qSearchValue = index => value =>
-  q.Let(
-    { ref: q.Match(q.Index(index), value) },
-    q.If(
-      q.Exists(q.Var('ref')),
-      { found: true, doc: q.Get(q.Var('ref')) },
-      { found: false, doc: null, message: value }
-    )
-  )
 const qUpdateChkout = (session, doc) => {
   const ts = Date.now()
   const tsCharged = session.payment_status === 'paid' ? ts : null
@@ -119,6 +108,7 @@ const htmlFromChkout = chkoutData => {
   return `<html>${JSON.stringify(chkoutData)}</html>` // to be implemeneted
 }
 
+// lambda function
 exports.handler = async ({ body, headers }) => {
   return Promise.resolve(
     stripe.webhooks.constructEvent(

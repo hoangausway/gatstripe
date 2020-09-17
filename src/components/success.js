@@ -45,8 +45,8 @@ const Success = () => {
           <p>ITEMS</p>
           <div>
             {successChkout.cart &&
-              successChkout.cart.map(i => (
-                <p key={i.productId}>{`${i.qty} x ${i.name}`}</p>
+              successChkout.cart.map((i, idx) => (
+                <p key={idx}>{`${i.qty} x ${i.name}`}</p>
               ))}
           </div>
         </div>
