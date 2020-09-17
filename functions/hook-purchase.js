@@ -12,6 +12,12 @@ const { q, fauna, qSearchValue } = require('./services/fauna')
 const { jsonError, jsonSuccess, reject } = require('./utils')
 
 class ErrorUnexpectedEventType extends Error {}
+class ErrorAlreadyHandled extends Error {}
+
+// Helpers - query constructors
+const qNewStripeEvent = eventId => {
+  return q.Create(q.Collection('stripe_events'), { data: { id: eventId } })
+}
 
 // Helpers - logics
 const handleError = err => {
@@ -24,17 +30,28 @@ const handleError = err => {
   return jsonSuccess({ received: true })
 }
 
-// event -> {received}
-const handleEvent = event => {
-  if (event.type === 'checkout.session.completed') {
-    return handleCheckoutSessionCompleted(event)
+// event -> session
+const selectEvent = event => {
+  // filter event
+  if (event.type !== 'checkout.session.completed') {
+    return reject(new ErrorUnexpectedEventType('Not handled'))
   }
-  return reject(new ErrorUnexpectedEventType('Not handled'))
+
+  // reject if already handled
+  const idxSearch = 'stripe_events_id'
+  return fauna
+    .query(qSearchValue(idxSearch)(event.id))
+    .then(({ found, doc }) => {
+      if (found) {
+        return reject(new ErrorAlreadyHandled('Already handled'))
+      }
+
+      return fauna.query(qNewStripeEvent).then(_ => sessionFromEvent(event))
+    })
 }
 
-// event -> {received}
-const handleCheckoutSessionCompleted = event => {
-  const session = sessionFromEvent(event)
+// session -> {received}
+const handleEvent = session => {
   return searchChkoutId(session) // session -> {session, found, doc}
     .then(switchFound) // {session, found, doc} -> {cfi, doc}
     .then(sendEmailToShop) // {cfi, doc} -> doc
@@ -117,7 +134,8 @@ exports.handler = async ({ body, headers }) => {
       process.env.STRIPE_WEBHOOK_SECRET
     )
   )
-    .then(handleEvent) // event -> {received}
+    .then(selectEvent) // event -> session
+    .then(handleEvent) // session -> {received}
     .then(jsonSuccess) // {received} -> {status, body}
     .catch(handleError) // err -> {status, body}
 }
